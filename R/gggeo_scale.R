@@ -1,6 +1,3 @@
-## declare variables that are used within aes() to prevent R CMD check from complaining
-utils::globalVariables(c("min_age", "max_age", "mid_age", "label"))
-
 #' @export
 #' @rdname gggeo_scale
 #' @param obj An object of class \code{ggplot}, \code{gtable}, or \code{geo_scale} (as produced by this function).
@@ -113,7 +110,7 @@ gggeo_scale <- function(obj, ...) {
 gggeo_scale.gtable <- function(obj, lims, dat = "periods", fill = NULL, color = "black", alpha = 1,
                                height = unit(2, "line"), pos = "bottom", lab = TRUE, rot = 0,
                                abbrv = TRUE, skip = c("Quaternary", "Holocene", "Late Pleistocene"),
-                               size = 5, lwd = .25, margin = NULL, neg = FALSE,
+                               size = 5, lwd = .25, margin = unit(0, "line"), neg = FALSE,
                                bord = c("left", "right", "top", "bottom"),
                                center_end_labels = FALSE, ...) {
   if(is(dat, "data.frame")){
@@ -270,7 +267,7 @@ gggeo_scale.gtable <- function(obj, lims, dat = "periods", fill = NULL, color = 
 gggeo_scale.ggplot <- function(obj, dat = "periods", fill = NULL, color = "black", alpha = 1,
                                height = unit(2, "line"), pos = "bottom", lab = TRUE, rot = 0,
                                abbrv = TRUE, skip = c("Quaternary", "Holocene", "Late Pleistocene"),
-                               size = 5, lwd = .25, margin = NULL, neg = FALSE,
+                               size = 5, lwd = .25, margin = unit(0, "line"), neg = FALSE,
                                bord = c("left", "right", "top", "bottom"),
                                center_end_labels = FALSE, ...){
   lims <- ggplot_build(obj)$layout$panel_params[[1]]
@@ -287,7 +284,7 @@ gggeo_scale.ggplot <- function(obj, dat = "periods", fill = NULL, color = "black
 gggeo_scale.geo_scale <- function(obj, dat = "periods", fill = NULL, color = "black", alpha = 1,
                                   height = unit(2, "line"), pos = "bottom", lab = TRUE, rot = 0,
                                   abbrv = TRUE, skip = c("Quaternary", "Holocene", "Late Pleistocene"),
-                                  size = 5, lwd = .25, margin = NULL, neg = FALSE,
+                                  size = 5, lwd = .25, margin = unit(0, "line"), neg = FALSE,
                                   bord = c("left", "right", "top", "bottom"),
                                   center_end_labels = FALSE, ...){
   lims <- obj$lims

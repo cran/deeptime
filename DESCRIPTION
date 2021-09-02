@@ -1,6 +1,6 @@
 Package: deeptime
 Title: Plotting Tools for Anyone Working in Deep Time
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("William", "Gearty", email = "willgearty@gmail.com", role = c("aut", "cre"))
 Maintainer: William Gearty <willgearty@gmail.com>
 Description: Extends the functionality of other plotting packages like
@@ -17,12 +17,13 @@ Encoding: UTF-8
 RoxygenNote: 7.1.1
 LazyData: true
 biocViews:
-Imports: ggplot2, ggnewscale, utils, grid, gridExtra, gtable, methods,
-        stats, lattice, rlang, scales
-Suggests: tidyverse, divDyn, gsloid, phytools, paleotree, ggforce,
-        dispRity, ggtree
+Imports: ggplot2, ggnewscale, utils, ggforce, grid, gridExtra, gtable,
+        methods, stats, lattice, rlang, scales, ggfittext
+Suggests: tidyverse, divDyn, gsloid, phytools, paleotree, dispRity,
+        ggtree, testthat (>= 3.0.0), vdiffr (>= 1.0.0),
+Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2021-07-22 16:44:12 UTC; Will
+Packaged: 2021-09-01 14:16:01 UTC; Will
 Author: William Gearty [aut, cre]
 Repository: CRAN
-Date/Publication: 2021-07-23 09:20:08 UTC
+Date/Publication: 2021-09-02 07:20:09 UTC

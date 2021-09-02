@@ -1,3 +1,6 @@
+## declare variables that are used within aes() to prevent R CMD check from complaining
+utils::globalVariables(c("min_age", "max_age", "mid_age", "label", "name", "translate"))
+
 #' Transformed coordinate system with geological timescale
 #'
 #' \code{coord_geo} behaves similarly to \code{\link[ggplot2]{coord_trans}} in that it occurs after
@@ -5,27 +8,37 @@
 #' is that it also adds a geological timescale to the specified side of the plot.
 #'
 #' Transforming the side with the scale is not currently implemented.
-#' If custom data is provided (with \code{dat}), it should consist of at least 3 columns of data. See \code{data(periods)} for an example.
-#'   The \code{name} column lists the names of each time interval. These will be used as labels if no abbreviations are provided.
-#'   The \code{max_age} column lists the oldest boundary of each time interval.
-#'   The \code{min_age} column lists the youngest boundary of each time interval.
-#'   The \code{abbr} column is optional and lists abbreviations that may be used as labels.
-#'   The \code{color} column is also optional and lists a hex color code (which can be obtained with \code{rgb()}) for each time interval.
+#' If a custom data.frame is provided (with \code{dat}), it should consist of at least 3 columns of data. See \code{data(periods)} for an example.
+#' \itemize{
+#'   \item The \code{name} column lists the names of each time interval. These will be used as labels if no abbreviations are provided.
+#'   \item The \code{max_age} column lists the oldest boundary of each time interval.
+#'   \item The \code{min_age} column lists the youngest boundary of each time interval.
+#'   \item The \code{abbr} column is optional and lists abbreviations that may be used as labels.
+#'   \item The \code{color} column is also optional and lists a hex color code (which can be obtained with \code{rgb()}) for each time interval.
+#' }
+#'
+#' If the axis of the time scale is discrete, \code{max_age} and \code{min_age} will
+#' automatically be converted to the discrete scale. In this case, the categories
+#' of the discrete axis should match the values in the \code{name} column. If the ages
+#' within \code{dat} are already discretized, you can set \code{dat_is_discrete} to
+#' \code{TRUE} to prevent this automatic conversion. This can be useful for adding a
+#' time scale where categories and time intervals are not 1:1.
 #'
 #' \code{pos} may also be a list of sides (including duplicates) if multiple time scales should be added to the plot.
 #' In this case, \code{dat}, \code{fill}, \code{color}, \code{alpha}, \code{height}, \code{lab},
-#' \code{rot}, \code{abbrv}, \code{skip}, \code{size}, \code{lwd}, \code{neg}, and \code{bord} can also be lists.
+#' \code{rot}, \code{abbrv}, \code{skip}, \code{size}, \code{lwd}, \code{neg}, \code{bord},
+#' \code{center_end_labels}, and \code{dat_is_discrete} can also be lists.
 #' If these lists are not as long as \code{pos}, the elements will be recycled.
+#' If individual values are used for these parameters, they will be applied to all time scales.
 #' @param pos Which side to add the scale to (left, right, top, or bottom). First letter may also be used.
 #' @param dat Either A) a string indicating a built-in dataframe with interval data from the ICS ("periods", "epochs", "stages", "eons", or "eras"),
 #'   B) a string indicating a timescale from macrostrat (see list here: \url{https://macrostrat.org/api/defs/timescales?all}),
-#'   or C) a custom dataframe of time interval boundaries (see Details).
+#'   or C) a custom data.frame of time interval boundaries (see Details).
 #' @param xlim,ylim Limits for the x and y axes.
 #' @param xtrans,ytrans Transformers for the x and y axes. For more information see \code{\link[ggplot2]{coord_trans}}.
 #' @param clip Should drawing be clipped to the extent of the plot panel? For more information see \code{\link[ggplot2]{coord_trans}}.
-#' @param expand If `TRUE`, the default, adds a small expansion factor to
-#'   the limits to ensure that data and axes don't overlap. If `FALSE`,
-#'   limits are taken exactly from the data or `xlim`/`ylim`.
+#' @param expand If `FALSE`, the default, limits are taken exactly from the data or `xlim`/`ylim`.
+#'   If `TRUE`, adds a small expansion factor to the limits to ensure that data and axes don't overlap.
 #' @param fill The fill color of the boxes. The default is to use the colors included in \code{dat}.
 #'   If a custom dataset is provided with \code{dat} without color and without fill, a greyscale will be used.
 #'   Custom fill colors can be provided with this option and will be recycled if/as necessary.
@@ -36,11 +49,13 @@
 #' @param rot The amount of counter-clockwise rotation to add to the labels (in degrees).
 #' @param abbrv If including labels, whether to use abbreviations instead of full interval names.
 #' @param skip A vector of interval names indicating which intervals should not be labeled. If \code{abbrv} is \code{TRUE}, this can also include interval abbreviations.
-#' @param size Label size.
+#' @param size Label size. Either a number as you would specify in \code{\link[ggplot2]{geom_text}} or \code{"auto"} to use \code{\link[ggfittext]{geom_fit_text}}.
 #' @param lwd Line width.
 #' @param neg Set this to true if your x-axis is using negative values.
-#' @param bord A vector specifying on Which sides of the scale to add borders (same options as \code{pos}).
+#' @param bord A vector specifying on which sides of the scale to add borders (same options as \code{pos}).
 #' @param center_end_labels Should labels be centered within the visible range of intervals at the ends of the axis?
+#' @param dat_is_discrete Are the ages in \code{dat} already converted for a discrete scale?
+#' @param fittext_args A list of named arguments to provide to \code{\link[ggfittext]{geom_fit_text}}. Only used if \code{size} is set to \code{"auto"}.
 #' @importFrom ggplot2 ggproto
 #' @import scales
 #' @export
@@ -66,7 +81,7 @@ coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
                       clip = "on", expand = FALSE, fill = NULL, color = "black", alpha = 1, height = unit(2, "line"),
                       lab = TRUE, rot = 0, abbrv = TRUE, skip = c("Quaternary", "Holocene", "Late Pleistocene"), size = 5,
                       lwd = .25, neg = FALSE, bord = c("left", "right", "top", "bottom"),
-                      center_end_labels = FALSE) {
+                      center_end_labels = FALSE, dat_is_discrete = FALSE, fittext_args = list()) {
 
   # resolve transformers
   if (is.character(xtrans)) xtrans <- as.trans(xtrans)
@@ -86,7 +101,9 @@ coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
           skip = rep(make_list(skip), length.out = n_scales), size = rep(make_list(size), length.out = n_scales),
           lwd = rep(make_list(lwd), length.out = n_scales), neg = rep(make_list(neg), length.out = n_scales),
           bord = rep(make_list(bord), length.out = n_scales),
-          center_end_labels = rep(make_list(center_end_labels), length.out = n_scales)
+          center_end_labels = rep(make_list(center_end_labels), length.out = n_scales),
+          dat_is_discrete = rep(make_list(dat_is_discrete), length.out = n_scales),
+          fittext_args = fittext_args
   )
 }
 
@@ -96,7 +113,7 @@ render_axis <- utils::getFromNamespace("render_axis", "ggplot2")
 #' @format NULL
 #' @usage NULL
 #' @export
-#' @importFrom ggplot2 ggproto CoordTrans
+#' @importFrom ggplot2 ggproto CoordTrans ggproto_parent
 #' @importFrom rlang %||%
 CoordGeo <- ggproto("CoordGeo", CoordTrans,
   setup_panel_params = function(self, scale_x, scale_y, params = list()) {
@@ -168,7 +185,9 @@ render_geo_scale <- function(self, panel_params, theme, position){
                        neg = self$neg[ind],
                        bord = self$bord[ind],
                        center_end_labels = self$center_end_labels[ind],
-                       MoreArgs = list(panel_params = panel_params, theme = theme),
+                       dat_is_discrete = self$dat_is_discrete[ind],
+                       MoreArgs = list(self = self, panel_params = panel_params,
+                                       theme = theme, fittext_args = self$fittext_args),
                        SIMPLIFY = FALSE)
   geo_grobs <- lapply(geo_scales, ggplotGrob)
 
@@ -200,14 +219,33 @@ render_geo_scale <- function(self, panel_params, theme, position){
   )
 }
 
-#' @importFrom ggplot2 ggplot geom_rect geom_segment geom_text annotate aes scale_fill_manual theme_void theme coord_cartesian coord_flip scale_x_reverse
+#' @importFrom ggplot2 ggplot geom_rect geom_segment geom_text annotate aes scale_fill_manual theme_void theme coord_cartesian coord_flip scale_x_reverse coord_trans
+#' @importFrom ggfittext geom_fit_text
+#' @importFrom rlang exec
 make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, rot, abbrv, skip,
-                           size, lwd, neg, bord, center_end_labels, panel_params, theme){
+                           size, lwd, neg, bord, center_end_labels, dat_is_discrete,
+                           panel_params, theme, fittext_args){
   if(is(dat, "data.frame")){
     #just use the supplied data
   }else{
     dat <- getScaleData(dat)
   }
+
+  #if the axis is discrete, adjust the data accordingly
+  if(pos %in% c("bottom", "top", "b", "t")){
+    discrete <- panel_params$scale_x$is_discrete()
+    limits <- panel_params$scale_x$limits
+  }else if(pos %in% c("left", "right","l","r")){
+    discrete <- panel_params$scale_y$is_discrete()
+    limits <- panel_params$scale_y$limits
+  }
+
+  if(discrete && !dat_is_discrete){
+    dat <- subset(dat, name %in% limits)
+    dat$min_age <- -0.5 + match(limits, dat$name)
+    dat$max_age <- 0.5 + match(limits, dat$name)
+  }
+
   if(neg){
     dat$max_age <- -1 * (dat$max_age)
     dat$min_age <- -1 * (dat$min_age)
@@ -239,17 +277,26 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, rot, abbrv, 
     theme_void()
 
   rev_axis <- FALSE
-  #if left or right, rotate accordingly, otherwise, just use coord_cartesian
+  #if left or right, rotate accordingly using coord_trans_flip,
+  #otherwise, just use coord_trans
   if(pos %in% c("bottom", "top", "b", "t")){
-    rev_axis <- panel_params$scale_x$trans$name == "reverse"
-    lims <- panel_params$x.range * c(1, -1)[rev_axis + 1]
+    if(discrete){
+      lims <- panel_params$x.range
+    } else {
+      rev_axis <- panel_params$scale_x$trans$name == "reverse"
+      lims <- panel_params$x.range * c(1, -1)[rev_axis + 1]
+    }
     gg_scale <- gg_scale +
-      coord_cartesian(xlim = lims, ylim = c(0,1), expand = FALSE)
+      coord_trans(x = self$trans$x, xlim = lims, ylim = c(0,1), expand = FALSE)
   }else if(pos %in% c("left", "right","l","r")){
-    rev_axis <- panel_params$scale_y$trans$name == "reverse"
-    lims <- panel_params$y.range * c(1, -1)[rev_axis + 1]
+    if(discrete){
+      lims <- panel_params$y.range
+    } else {
+      rev_axis <- panel_params$scale_y$trans$name == "reverse"
+      lims <- panel_params$y.range * c(1, -1)[rev_axis + 1]
+    }
     gg_scale <- gg_scale +
-      coord_flip(xlim = lims, ylim = c(0,1), expand = FALSE)
+      coord_trans_flip(x = self$trans$y, xlim = lims, ylim = c(0,1), expand = FALSE)
   }
 
   #Add labels
@@ -267,15 +314,27 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, rot, abbrv, 
         dat$mid_age[min_end] <- (ends[ends < max(lims) & ends > min(lims)] + min(lims))/2
       }
     }
-    gg_scale <- gg_scale +
-      geom_text(data = dat, aes(x = mid_age, label = label), y = .5,
-                vjust = "middle", hjust = "middle", size = size, angle = rot,
-                inherit.aes = FALSE)
+    if(size == "auto"){
+      gg_scale <- gg_scale +
+        exec(geom_fit_text, data = dat, aes(x = mid_age, label = label,
+                                            ymin = 0, ymax = 1,
+                                            xmin = min_age, xmax = max_age),
+                            angle = rot, inherit.aes = FALSE, !!!fittext_args)
+    } else {
+      gg_scale <- gg_scale +
+        geom_text(data = dat, aes(x = mid_age, label = label), y = .5,
+                  vjust = "middle", hjust = "middle", size = size, angle = rot,
+                  inherit.aes = FALSE)
+    }
   }
 
   #Add border
-  bord_lims <- lims
-  bord_lims[(if(neg) bord_lims > 0 else bord_lims < 0)] <- 0
+  if(discrete){
+    bord_lims <- c(min(dat$min_age), max(dat$max_age))
+  } else {
+    bord_lims <- lims
+    bord_lims[(if(neg) bord_lims > 0 else bord_lims < 0)] <- 0
+  }
 
   if("left" %in% bord | "l" %in% bord){
     gg_scale <- gg_scale +
@@ -307,5 +366,5 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, rot, abbrv, 
 }
 
 make_list <- function(x) {
-  if (is.list(x)) x else list(x)
+  if (is.list(x) & !is(x, 'data.frame')) x else list(x)
 }

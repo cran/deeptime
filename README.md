@@ -1,26 +1,41 @@
+# deeptime
+
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/willgearty/deeptime/workflows/R-CMD-check/badge.svg)](https://github.com/willgearty/deeptime/actions)
+[![codecov](https://codecov.io/gh/willgearty/deeptime/branch/master/graph/badge.svg?token=VMT2EQQB8E)](https://codecov.io/gh/willgearty/deeptime)
 [![DOI](https://zenodo.org/badge/152502088.svg)](https://zenodo.org/badge/latestdoi/152502088)
+[![CRAN status](https://www.r-pkg.org/badges/version/deeptime)](https://CRAN.R-project.org/package=deeptime)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/deeptime)](https://cran.r-project.org/package=deeptime)
 <!-- badges: end -->
 
-# deeptime
-Tools to help with plotting data over long time intervals.
+## Overview
+Extends the functionality of other plotting packages like
+`ggplot2` and `lattice` to help facilitate the plotting of data over long time
+intervals, including, but not limited to, geological, evolutionary, and ecological
+data. The primary goal of 'deeptime' is to enable users to add highly customizable
+timescales to their visualizations. Other functions are also included to assist
+with other areas of deep time visualization.
 
-*Note #1: This package is under active development. It's strongly suggested that you upgrade to the most recent version.*
-
-## To install
+## Installation
 ```r
-library(devtools)
-install_github("willgearty/deeptime")
+# get the stable version from CRAN
+install.packages("deeptime")
+
+# or get the development version from github
+# install.packages("devtools")
+devtools::install_github("willgearty/deeptime")
 ```
 
-## To use
+## Usage
 
 ### Load packages
 ```r
 library(deeptime)
 library(ggplot2)
 ```
+
+The main function of `deeptime` is `coord_geo()`, which functions just like `coord_trans()` from `ggplot2`.
+You can use this function to add highly customizable timescales to a wide variety of ggplots.
 
 ### Default scale on bottom axis
 ```r
@@ -40,7 +55,7 @@ ggplot(coral_div) +
   theme_classic()
 ```
 
-![example bottom scale](/images/example_bottom.png?raw=true)
+![example bottom scale](man/figures/example_bottom.png)
 
 ### Scale on left axis
 ```r
@@ -53,7 +68,7 @@ ggplot(lisiecki2005) +
   theme_classic()
 ```
 
-![example left scale](/images/example_left.png?raw=true)
+![example left scale](man/figures/example_left.png)
 
 ### Stack multiple scales (e.g. periods and eras)
 Specify multiple scales by giving a list for `pos`. Scales are added from the inside to the outside. Other arguments can be lists or single values (either of which will be recycled if necessary).
@@ -68,7 +83,7 @@ ggplot(coral_div) +
   theme_classic()
 ```
 
-![example stacked scales](/images/example_stack.png?raw=true)
+![example stacked scales](man/figures/example_stack.png)
 
 ### Show intervals from different scales (e.g. Geochrons vs. Foram biozones)
 ```r
@@ -82,18 +97,18 @@ ggplot(lisiecki2005) +
   theme_classic()
 ```
 
-![example separate scales](/images/separate_scales.png?raw=true)
+![example separate scales](man/figures/separate_scales.png)
 
 ### Scale on faceted plot
 You can change on which facets the time scale is plotted by changing the `scales` argument in `facet_wrap()`.
 ```r
 # uses the coral occurrence data from above
-coral_div <- corals %>% filter(stage != "") %>%
+coral_div_diet <- corals %>% filter(stage != "") %>%
   group_by(diet, stage) %>%
   summarise(n = n()) %>%
   mutate(stage_age = (stages$max_age[match(stage, stages$name)] + stages$min_age[match(stage, stages$name)])/2)
 
-ggplot(coral_div) +
+ggplot(coral_div_diet) +
   geom_line(aes(x = stage_age, y = n)) +
   scale_x_reverse("Age (Ma)") +
   ylab("Coral Genera") +
@@ -102,7 +117,70 @@ ggplot(coral_div) +
   facet_wrap(~diet, nrow = 3)
 ```
 
-![example faceted scale](/images/example_facet.png?raw=true)
+![example faceted scale](man/figures/example_facet.png)
+
+### Scale on discrete axis
+`coord_geo()` will automatically detect if your axis is discrete. The categories of the discrete axis
+(which can be reordered using the `limits` argument of `scale_[x/y]_discrete()`) should match the `name`
+column of the timescale data (`dat`). You can use the arguments of `theme()` and `scale_[x/y]_discrete()`
+to optionally remove the labels and tick marks.
+```r
+# uses the coral occurrence data from above
+coral_div_dis <- corals %>% filter(period != "") %>%
+  group_by(diet, period) %>%
+  summarise(n = n()) %>%
+  mutate(period_age = (periods$max_age[match(period, periods$name)] + periods$min_age[match(period, periods$name)])/2) %>%
+  arrange(-period_age)
+
+ggplot(coral_div_dis) +
+  geom_col(aes(x = period, y = n, fill = diet)) +
+  scale_x_discrete("Period", limits = unique(coral_div_dis$period), labels = NULL, expand = expansion(add = .5)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_fill_viridis_d() +
+  ylab("Coral Genera") +
+  coord_geo(expand = TRUE, skip = NULL, abbrv = FALSE) +
+  theme_classic() +
+  theme(axis.ticks.length.x = unit(0, "lines"))
+```
+
+![example discrete axis](man/figures/example_discrete.png)
+
+### Custom discrete scale
+You can also supply your own pre-discretized scale data by setting the `dat_is_discrete` parameter to `TRUE`.
+You can even have one scale with auto-discretized ages and one scale with pre-discretized ages.
+
+```r
+eras_custom <- data.frame(name = c("Mesozoic", "Cenozoic"), max_age = c(0.5, 3.5), min_age = c(3.5, 6.5), color = c("#67C5CA", "#F2F91D"))
+
+ggplot(coral_div_dis) +
+  geom_col(aes(x = period, y = n, fill = diet)) +
+  scale_x_discrete(NULL, limits = unique(coral_div_dis$period), labels = NULL, expand = expansion(add = .5)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_fill_viridis_d() +
+  ylab("Coral Genera") +
+  coord_geo(dat = list("periods", eras_custom), pos = c("b", "b"), expand = TRUE, skip = NULL, abbrv = FALSE, dat_is_discrete = list(FALSE, TRUE)) +
+  theme_classic() +
+  theme(axis.ticks.length.x = unit(0, "lines"))
+```
+
+![example custom discrete axis](man/figures/example_discrete_multiple.png)
+
+### Resize labels to fit inside interval rectangles
+`coord_geo()` can use the [ggfittext package](https://wilkox.org/ggfittext/index.html) to resize labels.
+This can be enabled by setting `size` to `"auto"`. Additional arguments can be passed to `geom_fit_text()`
+as a list using the `fittext_args` argument.
+
+```r
+ggplot(coral_div) +
+  geom_line(aes(x = stage_age, y = n)) +
+  scale_x_reverse("Age (Ma)") +
+  ylab("Coral Genera") +
+  coord_geo(dat = "periods", xlim = c(250, 0), ylim = c(0, 1700),
+            abbrv = FALSE, size = "auto", fittext_args = list(size = 20)) +
+  theme_classic()
+```
+
+![example bottom scale](man/figures/example_fittext.png)
 
 ### Add scale to a phylogeny
 ```r
@@ -116,7 +194,7 @@ p <- ggtree(mammal.tree) +
 revts(p)
 ```
 
-![example phylogeny](/images/example_phylo.png?raw=true)
+![example phylogeny](man/figures/example_phylo.png)
 
 ### Add scale to a phylogeny with only fossil taxa
 ```r
@@ -133,7 +211,7 @@ ggtree(ceratopsianTreeRaia, position = position_nudge(x = -ceratopsianTreeRaia$r
   theme(plot.margin = margin(7,11,7,11))
 ```
 
-![example fossil_phylogeny](/images/example_fossil_phylo.png?raw=true)
+![example fossil_phylogeny](man/figures/example_fossil_phylo.png)
 
 ### Combine plots with timescales and plots without timescales
 ```r
@@ -159,7 +237,7 @@ p3 <- ggtree(ammoniteTreeRaia, position = position_nudge(x = -ammoniteTreeRaia$r
 ggarrange2(ggarrange2(p1, p2, widths = c(2,1), draw = FALSE), p3, nrow = 2, heights = c(1,2))
 ```
 
-![example ggarrange2](/images/ggarrange2.png?raw=true)
+![example ggarrange2](man/figures/ggarrange2.png)
 
 ### Plot disparity through time
 #### With ggplot
@@ -206,7 +284,7 @@ ggplot() +
   theme(panel.spacing = unit(1, "lines"), panel.background = element_blank())
 ```
 
-![example disparity_ggplot](/images/disparity_ggplot.png?raw=true)
+![example disparity_ggplot](man/figures/disparity_ggplot.png)
 
 #### With base R/lattice
 ```r
@@ -217,4 +295,4 @@ disparity_through_time(time~V1*V2, data = crinoids, groups = time, aspect = c(1.
                        col.regions = "lightgreen", col.point = c("red","blue"))
 ```
 
-![example disparity_lattice](/images/disparity_lattice.png?raw=true)
+![example disparity_lattice](man/figures/disparity_lattice.png)

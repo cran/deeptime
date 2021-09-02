@@ -27,7 +27,9 @@ coord_geo(
   lwd = 0.25,
   neg = FALSE,
   bord = c("left", "right", "top", "bottom"),
-  center_end_labels = FALSE
+  center_end_labels = FALSE,
+  dat_is_discrete = FALSE,
+  fittext_args = list()
 )
 }
 \arguments{
@@ -35,7 +37,7 @@ coord_geo(
 
 \item{dat}{Either A) a string indicating a built-in dataframe with interval data from the ICS ("periods", "epochs", "stages", "eons", or "eras"),
 B) a string indicating a timescale from macrostrat (see list here: \url{https://macrostrat.org/api/defs/timescales?all}),
-or C) a custom dataframe of time interval boundaries (see Details).}
+or C) a custom data.frame of time interval boundaries (see Details).}
 
 \item{xlim, ylim}{Limits for the x and y axes.}
 
@@ -43,9 +45,8 @@ or C) a custom dataframe of time interval boundaries (see Details).}
 
 \item{clip}{Should drawing be clipped to the extent of the plot panel? For more information see \code{\link[ggplot2]{coord_trans}}.}
 
-\item{expand}{If `TRUE`, the default, adds a small expansion factor to
-the limits to ensure that data and axes don't overlap. If `FALSE`,
-limits are taken exactly from the data or `xlim`/`ylim`.}
+\item{expand}{If `FALSE`, the default, limits are taken exactly from the data or `xlim`/`ylim`.
+If `TRUE`, adds a small expansion factor to the limits to ensure that data and axes don't overlap.}
 
 \item{fill}{The fill color of the boxes. The default is to use the colors included in \code{dat}.
 If a custom dataset is provided with \code{dat} without color and without fill, a greyscale will be used.
@@ -65,15 +66,19 @@ Custom fill colors can be provided with this option and will be recycled if/as n
 
 \item{skip}{A vector of interval names indicating which intervals should not be labeled. If \code{abbrv} is \code{TRUE}, this can also include interval abbreviations.}
 
-\item{size}{Label size.}
+\item{size}{Label size. Either a number as you would specify in \code{\link[ggplot2]{geom_text}} or \code{"auto"} to use \code{\link[ggfittext]{geom_fit_text}}.}
 
 \item{lwd}{Line width.}
 
 \item{neg}{Set this to true if your x-axis is using negative values.}
 
-\item{bord}{A vector specifying on Which sides of the scale to add borders (same options as \code{pos}).}
+\item{bord}{A vector specifying on which sides of the scale to add borders (same options as \code{pos}).}
 
 \item{center_end_labels}{Should labels be centered within the visible range of intervals at the ends of the axis?}
+
+\item{dat_is_discrete}{Are the ages in \code{dat} already converted for a discrete scale?}
+
+\item{fittext_args}{A list of named arguments to provide to \code{\link[ggfittext]{geom_fit_text}}. Only used if \code{size} is set to \code{"auto"}.}
 }
 \description{
 \code{coord_geo} behaves similarly to \code{\link[ggplot2]{coord_trans}} in that it occurs after
@@ -82,17 +87,28 @@ is that it also adds a geological timescale to the specified side of the plot.
 }
 \details{
 Transforming the side with the scale is not currently implemented.
-If custom data is provided (with \code{dat}), it should consist of at least 3 columns of data. See \code{data(periods)} for an example.
-  The \code{name} column lists the names of each time interval. These will be used as labels if no abbreviations are provided.
-  The \code{max_age} column lists the oldest boundary of each time interval.
-  The \code{min_age} column lists the youngest boundary of each time interval.
-  The \code{abbr} column is optional and lists abbreviations that may be used as labels.
-  The \code{color} column is also optional and lists a hex color code (which can be obtained with \code{rgb()}) for each time interval.
+If a custom data.frame is provided (with \code{dat}), it should consist of at least 3 columns of data. See \code{data(periods)} for an example.
+\itemize{
+  \item The \code{name} column lists the names of each time interval. These will be used as labels if no abbreviations are provided.
+  \item The \code{max_age} column lists the oldest boundary of each time interval.
+  \item The \code{min_age} column lists the youngest boundary of each time interval.
+  \item The \code{abbr} column is optional and lists abbreviations that may be used as labels.
+  \item The \code{color} column is also optional and lists a hex color code (which can be obtained with \code{rgb()}) for each time interval.
+}
+
+If the axis of the time scale is discrete, \code{max_age} and \code{min_age} will
+automatically be converted to the discrete scale. In this case, the categories
+of the discrete axis should match the values in the \code{name} column. If the ages
+within \code{dat} are already discretized, you can set \code{dat_is_discrete} to
+\code{TRUE} to prevent this automatic conversion. This can be useful for adding a
+time scale where categories and time intervals are not 1:1.
 
 \code{pos} may also be a list of sides (including duplicates) if multiple time scales should be added to the plot.
 In this case, \code{dat}, \code{fill}, \code{color}, \code{alpha}, \code{height}, \code{lab},
-\code{rot}, \code{abbrv}, \code{skip}, \code{size}, \code{lwd}, \code{neg}, and \code{bord} can also be lists.
+\code{rot}, \code{abbrv}, \code{skip}, \code{size}, \code{lwd}, \code{neg}, \code{bord},
+\code{center_end_labels}, and \code{dat_is_discrete} can also be lists.
 If these lists are not as long as \code{pos}, the elements will be recycled.
+If individual values are used for these parameters, they will be applied to all time scales.
 }
 \examples{
 library(ggplot2)

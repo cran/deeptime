@@ -1,5 +1,15 @@
+# deeptime 0.2.0
+Several new features and bug fixes.
+
+* coord_geo() now works with discrete axes (#32 and #35)
+* Fixed a bug that prevented the use of custom interval data
+* Added option to use ggfittext to automatically resize labels (#19)
+* Added coord_trans_flip() (#20)
+* Fixed axis labels for coord_trans_xy() (#36)
+* Added tests with testthat (#35)
+
 # deeptime 0.1.0
-First minor release (planned for CRAN submission)
+First minor release (released on CRAN!)
 
 * Fixed ability to use text transformations (from `scales`) in `coord_geo()` (#30)
 * Added automatic R CMD check Github Actions
