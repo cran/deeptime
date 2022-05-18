@@ -1,4 +1,7 @@
-# development version
+# deeptime 0.2.2
+
+* Skip tests when suggested packages are unavailable
+* Added the ability to specify label color (#40)
 
 # deeptime 0.2.1
 Updated built-in timescales

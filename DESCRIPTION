@@ -1,6 +1,6 @@
 Package: deeptime
 Title: Plotting Tools for Anyone Working in Deep Time
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: person("William", "Gearty", email = "willgearty@gmail.com", role = c("aut", "cre"))
 Maintainer: William Gearty <willgearty@gmail.com>
 Description: Extends the functionality of other plotting packages like
@@ -23,7 +23,7 @@ Suggests: tidyverse, divDyn, gsloid, phytools, paleotree, dispRity,
         ggtree, testthat (>= 3.0.0), vdiffr (>= 1.0.0),
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2022-01-10 23:11:42 UTC; Will
+Packaged: 2022-05-16 17:40:00 UTC; Will
 Author: William Gearty [aut, cre]
 Repository: CRAN
-Date/Publication: 2022-01-10 23:42:46 UTC
+Date/Publication: 2022-05-18 14:00:06 UTC
