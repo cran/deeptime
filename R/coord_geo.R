@@ -112,8 +112,6 @@ coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
   )
 }
 
-render_axis <- utils::getFromNamespace("render_axis", "ggplot2")
-
 #' @rdname coord_geo
 #' @format NULL
 #' @usage NULL
@@ -131,40 +129,28 @@ CoordGeo <- ggproto("CoordGeo", CoordTrans,
 
   render_axis_h = function(self, panel_params, theme) {
     arrange <- panel_params$x.arrange %||% c("secondary", "primary")
+    axes <- CoordTrans$render_axis_h(panel_params, theme)
     if (any(self$pos %in% c("top", "t"))){
-      top = render_geo_scale(self, panel_params, theme, "top")
-    } else {
-      top = render_axis(panel_params, arrange[1], "x", "top", theme)
+      axes$top <- render_geo_scale(self, panel_params, theme, "top")
     }
     if (any(self$pos %in% c("bottom", "b"))){
-      bottom = render_geo_scale(self, panel_params, theme, "bottom")
-    } else {
-      bottom = render_axis(panel_params, arrange[2], "x", "bottom", theme)
+      axes$bottom <- render_geo_scale(self, panel_params, theme, "bottom")
     }
 
-    list(
-      top = top,
-      bottom = bottom
-    )
+    axes
   },
 
   render_axis_v = function(self, panel_params, theme) {
     arrange <- panel_params$y.arrange %||% c("primary", "secondary")
+    axes <- CoordTrans$render_axis_v(panel_params, theme)
     if (any(self$pos %in% c("left", "l"))){
-      left = render_geo_scale(self, panel_params, theme, "left")
-    } else {
-      left = render_axis(panel_params, arrange[1], "y", "left", theme)
+      axes$left <- render_geo_scale(self, panel_params, theme, "left")
     }
     if (any(self$pos %in% c("right", "r"))){
-      right = render_geo_scale(self, panel_params, theme, "right")
-    } else {
-      right = render_axis(panel_params, arrange[2], "y", "right", theme)
+      axes$right <- render_geo_scale(self, panel_params, theme, "right")
     }
 
-    list(
-      left = left,
-      right = right
-    )
+    axes
   }
 )
 
@@ -198,22 +184,22 @@ render_geo_scale <- function(self, panel_params, theme, position){
   geo_grobs <- lapply(geo_scales, ggplotGrob)
 
   if(position == "bottom"){
-    axis <- render_axis(panel_params, "primary", "x", "bottom", theme)
+    axis <- CoordTrans$render_axis_h(panel_params, theme)$bottom
     gt <- gtable_col("axis", grobs = c(geo_grobs, list(axis)),
                      width = one, heights = unit.c(do.call(unit.c, self$height[ind]), grobHeight(axis)))
     justvp <- viewport(y = 1, just = "top", height = gtable_height(gt))
   }else if(position == "top"){
-    axis <- render_axis(panel_params, "primary", "x", "top", theme)
+    axis <- CoordTrans$render_axis_h(panel_params, theme)$top
     gt <- gtable_col("axis", grobs = c(list(axis), geo_grobs),
                      width = one, heights = unit.c(grobHeight(axis), do.call(unit.c, self$height[ind])))
     justvp <-  viewport(y = 0, just = "bottom", height = gtable_height(gt))
   }else if(position == "left"){
-    axis <- render_axis(panel_params, "primary", "y", "left", theme)
+    axis <- CoordTrans$render_axis_v(panel_params, theme)$left
     gt <- gtable_row("axis", grobs = c(list(axis), geo_grobs),
                      height = one, widths = unit.c(grobWidth(axis), do.call(unit.c, self$height[ind])))
     justvp <-  viewport(x = 1, just = "right", width = gtable_width(gt))
   }else if(position == "right"){
-    axis <- render_axis(panel_params, "primary", "y", "right", theme)
+    axis <- CoordTrans$render_axis_v(panel_params, theme)$right
     gt <- gtable_row("axis", grobs = c(geo_grobs, list(axis)),
                      height = one, widths = unit.c(do.call(unit.c, self$height[ind]), grobWidth(axis)))
     justvp <-  viewport(x = 0, just = "left", width = gtable_width(gt))
@@ -279,13 +265,24 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, lab_color, r
   gg_scale <- ggplot() +
     geom_rect(data = dat, aes(xmin = min_age, xmax = max_age, fill = color),
               ymin = 0, ymax = 1, color = NA, alpha = alpha,
-              show.legend = FALSE, inherit.aes = FALSE) +
-    geom_segment(data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
-                 color = color, size = lwd) +
-    geom_segment(data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
-                 color = color, size = lwd) +
-    scale_fill_manual(values = setNames(dat$color, dat$color)) +
-    theme_void()
+              show.legend = FALSE, inherit.aes = FALSE)
+  if (packageVersion("ggplot2") > "3.3.6") {
+    gg_scale <- gg_scale +
+      geom_segment(data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
+                   color = color, linewidth = lwd) +
+      geom_segment(data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
+                   color = color, linewidth = lwd) +
+      scale_fill_manual(values = setNames(dat$color, dat$color)) +
+      theme_void()
+  } else {
+    gg_scale <- gg_scale +
+      geom_segment(data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
+                   color = color, size = lwd) +
+      geom_segment(data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
+                   color = color, size = lwd) +
+      scale_fill_manual(values = setNames(dat$color, dat$color)) +
+      theme_void()
+  }
 
   rev_axis <- FALSE
   #if left or right, rotate accordingly using coord_trans_flip,
@@ -350,25 +347,48 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos, lab, lab_color, r
     bord_lims[(if(neg) bord_lims > 0 else bord_lims < 0)] <- 0
   }
 
-  if("left" %in% bord | "l" %in% bord){
-    gg_scale <- gg_scale +
-      annotate("segment", x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
-               color = color, size = if(bord_lims[1] == lims[1]) lwd * 2 else lwd)
-  }
-  if("right" %in% bord | "r" %in% bord){
-    gg_scale <- gg_scale +
-      annotate("segment", x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
-               color = color, size = if(bord_lims[2] == lims[2]) lwd * 2 else lwd)
-  }
-  if("top" %in% bord | "t" %in% bord){
-    gg_scale <- gg_scale +
-      annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
-               color = color, size = lwd * 2)
-  }
-  if("bottom" %in% bord | "b" %in% bord){
-    gg_scale <- gg_scale +
-      annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
-               color = color, size = lwd * 2)
+  if (packageVersion("ggplot2") > "3.3.6") {
+    if("left" %in% bord | "l" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
+                 color = color, linewidth = if(bord_lims[1] == lims[1]) lwd * 2 else lwd)
+    }
+    if("right" %in% bord | "r" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
+                 color = color, linewidth = if(bord_lims[2] == lims[2]) lwd * 2 else lwd)
+    }
+    if("top" %in% bord | "t" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
+                 color = color, linewidth = lwd * 2)
+    }
+    if("bottom" %in% bord | "b" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
+                 color = color, linewidth = lwd * 2)
+    }
+  } else {
+    if("left" %in% bord | "l" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
+                 color = color, size = if(bord_lims[1] == lims[1]) lwd * 2 else lwd)
+    }
+    if("right" %in% bord | "r" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
+                 color = color, size = if(bord_lims[2] == lims[2]) lwd * 2 else lwd)
+    }
+    if("top" %in% bord | "t" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
+                 color = color, size = lwd * 2)
+    }
+    if("bottom" %in% bord | "b" %in% bord){
+      gg_scale <- gg_scale +
+        annotate("segment", x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
+                 color = color, size = lwd * 2)
+    }
   }
 
   #reverse axis if necessary
