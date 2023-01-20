@@ -3,15 +3,15 @@
 \docType{data}
 \name{periods}
 \alias{periods}
-\title{Period data from the International Commission on Stratigraphy (v2022/02)}
+\title{Period data from the International Commission on Stratigraphy (v2022/10)}
 \format{
 A data frame with 22 rows and 5 variables:
 \describe{
-  \item{name}{period name}
-  \item{max_age}{maximum age, in millions of years}
-  \item{min_age}{minimum age, in millions of years}
-  \item{abbr}{period name abbreviations}
-  \item{color}{the colors for each period, according to the Commission for the Geological Map of the World}
+\item{name}{period name}
+\item{max_age}{maximum age, in millions of years}
+\item{min_age}{minimum age, in millions of years}
+\item{abbr}{period name abbreviations}
+\item{color}{the colors for each period, according to the Commission for the Geological Map of the World}
 }
 }
 \source{
@@ -22,7 +22,7 @@ periods
 }
 \description{
 A dataset containing the boundary ages, abbreviations, and colors for the periods of the Geologic Time Scale.
-Based on The ICS International Chronostratigraphic Chart (v2022/02), by Cohen, Finney, Gibbard, and Fan.
+Based on The ICS International Chronostratigraphic Chart (v2022/10), by Cohen, Finney, Gibbard, and Fan.
 }
 \seealso{
 Other timescales: 

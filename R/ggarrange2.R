@@ -1,6 +1,9 @@
-#' gtable_frame2
+#' Decompose a ggplot gtable
 #'
-#' @description Reformat the gtable associated with a ggplot object into a 7x7 gtable where the central cell corresponds to the plot panel(s), the rectangle of cells around that corresponds to the axes, and the rectangle of cells around that corresponds to the axis titles.
+#' Reformat the gtable associated with a ggplot object into a 7x7 gtable where
+#' the central cell corresponds to the plot panel(s), the rectangle of cells
+#' around that corresponds to the axes, and the rectangle of cells around that
+#' corresponds to the axis titles.
 #' @param g gtable
 #' @param width requested width
 #' @param height requested height
@@ -264,12 +267,12 @@ label_grid <- function(labels, x = 0, hjust = 0, y = 1, vjust = 1, ..., .fun = t
   lapply(labels, .fun, x = x, hjust = hjust, y = y, vjust = vjust, ...)
 }
 
-#' ggarrange2
+#' Combine and arrange multiple ggplot-like objects
 #'
-#' @description Arrange multiple ggplot, grobified ggplot, or geo_scale objects on a page, aligning the plot panels, axes, and axis titles.
+#' Arrange multiple ggplot, grobified ggplot, or geo_scale objects on a page, aligning the plot panels, axes, and axis titles.
 #' @param ... ggplot, grobified ggplot (gtable), or geo_scale objects
 #' @param plots list of ggplot, gtable, or geo_scale objects
-#' @param layout a matrix of integers specifying where each plot should go, like \code{mat} in \code{\link[graphics]{layout}}; \code{NA} or a value less than 0 or greater than the number of plots indicates a blank plot; overrides nrow/ncol/byrow
+#' @param layout a matrix of integers specifying where each plot should go, like `mat` in [graphics::layout()]; `NA` or a value less than 0 or greater than the number of plots indicates a blank plot; overrides nrow/ncol/byrow
 #' @param nrow number of rows
 #' @param ncol number of columns
 #' @param heights list of requested heights
@@ -280,12 +283,12 @@ label_grid <- function(labels, x = 0, hjust = 0, y = 1, vjust = 1, ..., .fun = t
 #' @param left optional string, or grob
 #' @param right optional string, or grob
 #' @param padding unit of length one, margin around annotations
-#' @param margin vector of units of length 4: top, right, bottom, left (as in \code{\link[gtable]{gtable_add_padding}})
+#' @param margin vector of units of length 4: top, right, bottom, left (as in [gtable::gtable_add_padding()])
 #' @param clip argument of gtable
 #' @param newpage logical: draw on a new page
 #' @param draw logical: draw or return a grob
 #' @param debug logical, show layout with thin lines
-#' @param labels character labels used for annotation of subfigures (should be in the same order as \code{plots})
+#' @param labels character labels used for annotation of subfigures (should be in the same order as `plots`)
 #' @param label.args label list of parameters for the formatting of labels
 #' @importFrom grid is.unit is.grob gpar grobHeight grobWidth
 #' @importFrom grDevices n2mfrow

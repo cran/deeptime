@@ -3,15 +3,15 @@
 \docType{data}
 \name{stages}
 \alias{stages}
-\title{Stage data from the International Commission on Stratigraphy (v2022/02)}
+\title{Stage data from the International Commission on Stratigraphy (v2022/10)}
 \format{
 A data frame with 102 rows and 5 variables:
 \describe{
-  \item{name}{stage name}
-  \item{max_age}{maximum age, in millions of years}
-  \item{min_age}{minimum age, in millions of years}
-  \item{abbr}{stage name abbreviations}
-  \item{color}{the colors for each stage, according to the Commission for the Geological Map of the World}
+\item{name}{stage name}
+\item{max_age}{maximum age, in millions of years}
+\item{min_age}{minimum age, in millions of years}
+\item{abbr}{stage name abbreviations}
+\item{color}{the colors for each stage, according to the Commission for the Geological Map of the World}
 }
 }
 \source{
@@ -22,7 +22,7 @@ stages
 }
 \description{
 A dataset containing the boundary ages, abbreviations, and colors for the stages of the Geologic Time Scale.
-Based on The ICS International Chronostratigraphic Chart (v2022/02), by Cohen, Finney, Gibbard, and Fan.
+Based on The ICS International Chronostratigraphic Chart (v2022/10), by Cohen, Finney, Gibbard, and Fan.
 }
 \seealso{
 Other timescales: 

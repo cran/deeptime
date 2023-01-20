@@ -3,15 +3,15 @@
 \docType{data}
 \name{eras}
 \alias{eras}
-\title{Era data from the International Commission on Stratigraphy (v2022/02)}
+\title{Era data from the International Commission on Stratigraphy (v2022/10)}
 \format{
 A data frame with 10 rows and 5 variables:
 \describe{
-  \item{name}{era name}
-  \item{max_age}{maximum age, in millions of years}
-  \item{min_age}{minimum age, in millions of years}
-  \item{abbr}{era name abbreviations}
-  \item{color}{the colors for each era, according to the Commission for the Geological Map of the World}
+\item{name}{era name}
+\item{max_age}{maximum age, in millions of years}
+\item{min_age}{minimum age, in millions of years}
+\item{abbr}{era name abbreviations}
+\item{color}{the colors for each era, according to the Commission for the Geological Map of the World}
 }
 }
 \source{
@@ -22,7 +22,7 @@ eras
 }
 \description{
 A dataset containing the boundary ages, abbreviations, and colors for the eras of the Geologic Time Scale.
-Based on The ICS International Chronostratigraphic Chart (v2022/02), by Cohen, Finney, Gibbard, and Fan.
+Based on The ICS International Chronostratigraphic Chart (v2022/10), by Cohen, Finney, Gibbard, and Fan.
 }
 \seealso{
 Other timescales: 

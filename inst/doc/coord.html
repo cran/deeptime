@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Transforming coordinate systems</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Transforming coordinate systems</h1>
+
+
+
+<div style="text-align: justify">
+<p><code>{ggplot2}</code> has many built-in <a href="https://ggplot2-book.org/coord.html">coordinate systems</a> which
+are used to both 1) produce the two-dimensional position of the plotted
+data and 2) draw custom axes and panel backgrounds.
+<code>coord_geo()</code> uses this second purpose to draw special axes
+that include timescales. However, <strong>deeptime</strong> also
+includes a number of other coordinate systems whose primary function is
+to modify the way data is plotted. To demonstrate this, we’ll first need
+to load some packages.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load deeptime</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(deeptime)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load ggplot for making plots</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># It has some example data too</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+<div id="coord_trans-meets-coord_flip" class="section level2">
+<h2>coord_trans meets coord_flip</h2>
+<p>One limitation of the traditional <code>coord_trans()</code> function
+in <code>{ggplot2}</code> is that you can not flip the axes while also
+transforming the axes. Historically, you would need to either 1) use
+<code>scale_x_continuous()</code> or <code>scale_y_continuous()</code>
+to transform one or both of your axes (which could result in the
+untransparent loss of data) in combination with
+<code>coord_flip()</code> or 2) transform your data before supplying it
+to <code>ggplot()</code>. <code>coord_trans_flip()</code> accomplishes
+this without the need for <code>scales</code> or transforming your data.
+It works just like <code>coord_trans()</code>, with the added
+functionality of the axis flip from <code>coord_flip()</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_trans_flip</span>(<span class="at">x =</span> <span class="st">&quot;sqrt&quot;</span>, <span class="at">y =</span> <span class="st">&quot;log10&quot;</span>) <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+<p>Note: back in 2020, <code>{ggplot2}</code> <a href="https://www.tidyverse.org/blog/2020/03/ggplot2-3-3-0/#bi-directional-geoms-and-stats">updated</a>
+all the directional stats and geoms (e.g., boxplots and histograms) to
+work in both directions based on the aesthetic mapping. This somewhat
+makes this function redundant, but I still find it useful.</p>
+</div>
+<div id="d-linear-transformations" class="section level2">
+<h2>2D linear transformations</h2>
+<p>Another limitation of the traditional <code>coord_trans()</code> is
+that each axis is transformed independently.
+<code>coord_trans_xy()</code> expands this functionality to allow for a
+two-dimensional linear transformation as generated by
+<code>ggforce::linear_trans()</code>. This allows for rotations,
+stretches, shears, translations, and reflections. A dummy example using
+the <code>?mtcars</code> dataset from <code>{ggplot2}</code> is included
+below. While applications of this functionality may seem abstract for
+real data, see the <a href="traits.html">plotting traits</a> article for
+a potential real-world application using species trait data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make transformer</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggforce)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">linear_trans</span>(<span class="fu">shear</span>(<span class="dv">50</span>, <span class="dv">0</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># set up data to be plotted</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>square <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">disp =</span> <span class="fu">c</span>(<span class="fu">min</span>(mtcars<span class="sc">$</span>disp), <span class="fu">min</span>(mtcars<span class="sc">$</span>disp),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">max</span>(mtcars<span class="sc">$</span>disp), <span class="fu">max</span>(mtcars<span class="sc">$</span>disp)),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">wt =</span> <span class="fu">c</span>(<span class="fu">min</span>(mtcars<span class="sc">$</span>wt), <span class="fu">max</span>(mtcars<span class="sc">$</span>wt),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">max</span>(mtcars<span class="sc">$</span>wt), <span class="fu">min</span>(mtcars<span class="sc">$</span>wt)))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># plot data normally</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> square, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&#39;black&#39;</span>) <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>() <span class="sc">+</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot data with transformation</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> square, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&#39;black&#39;</span>) <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_trans_xy</span>(<span class="at">trans =</span> trans, <span class="at">expand =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
