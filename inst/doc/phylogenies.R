@@ -1,13 +1,12 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, fig.width = 7, fig.height = 5, fig.align = "center")
 
-## ----message = FALSE----------------------------------------------------------
+## ----message = FALSE, warning = FALSE-----------------------------------------
 # Load deeptime
 library(deeptime)
 # Load other packages
 library(ggplot2)
 library(dplyr)
-library(magrittr) # for piping
 # Load ggtree
 library(ggtree)
 # Load phytools for some example data
@@ -36,18 +35,20 @@ ggtree(ceratopsianTreeRaia, position = position_nudge(x = -ceratopsianTreeRaia$r
   theme_tree2() +
   theme(plot.margin = margin(7, 11, 7, 11))
 
-## -----------------------------------------------------------------------------
-revts(ggtree(mammal.tree)) +
-  coord_geo_polar(dat = "stages") +
-  scale_x_continuous(breaks = seq(-60, 0, 20), labels = abs(seq(-60, 0, 20)))
+## ----eval = FALSE-------------------------------------------------------------
+#  revts(ggtree(mammal.tree)) +
+#    coord_geo_radial(dat = "stages") +
+#    scale_x_continuous(breaks = seq(-60, 0, 20), labels = abs(seq(-60, 0, 20))) +
+#    scale_y_continuous(guide = NULL) +
+#    theme_classic()
 
-## ----message = FALSE----------------------------------------------------------
-revts(ggtree(mammal.tree)) +
-  coord_geo_polar(
-    dat = list("stages", "periods"), alpha = .5,
-    prop = list(0.66, .34), start = pi / 4, lty = "dashed"
-  ) +
-  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02))) +
-  scale_x_continuous(breaks = seq(-60, 0, 20), labels = abs(seq(-60, 0, 20))) +
-  theme(axis.text.r = element_text(size = 3.5, hjust = .25, vjust = .5))
+## ----eval = FALSE-------------------------------------------------------------
+#  revts(ggtree(mammal.tree)) +
+#    coord_geo_radial(
+#      dat = list("stages", "periods"), alpha = .5, lty = "dashed",
+#      prop = list(0.66, .34), start = 2 * pi, end = 1.75 * pi, direction = 1,
+#    ) +
+#    scale_y_continuous(guide = NULL, expand = expansion(mult = c(0.02, 0.02))) +
+#    scale_x_continuous(breaks = seq(-60, 0, 20), labels = abs(seq(-60, 0, 20))) +
+#    theme_classic()
 

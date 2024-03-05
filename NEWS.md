@@ -1,3 +1,20 @@
+# deeptime 1.1.0
+deeptime now requires ggplot2 version 3.4.0 or higher. This version introduces several new features and bug fixes:
+
+* Added geom_points_range(), a function designed for visualizing temporal occurrence data
+* Added facet_grid_color() and facet_wrap_color() for changing strip background colors (#50)
+* Added coord_geo_radial(), an enhanced version of coord_geo_polar() (only works with ggplot2 version 3.5.0 and higher) (#56)
+* Added `family` and `fontface` arguments to coord_geo()
+* Added the ability to include interval labels with coord_geo_polar() (#48)
+* Fixed the interaction between coord_geo() and ggsave() (#49)
+* Fixed `size = "auto"` when `center_end_labels = TRUE` in coord_geo()
+* Updated several functions to work with ggplot2 version 3.5.0
+
+Notable changes:
+
+* The names for the theme elements that are used for coord_geo_polar() are now prepended with "deeptime." (e.g., `deeptime.axis.line.r`) (#51)
+* ggplot2 version 3.5.0 has broken several edge cases of coord_trans_xy(). See the documentation for more details. This will be fixed in a future deeptime release.
+
 # deeptime 1.0.1
 
 * Fixed the bounds of the Kungurian stage in the built-in stages data

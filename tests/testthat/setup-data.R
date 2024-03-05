@@ -28,6 +28,8 @@ if (suppressPackageStartupMessages(require(divDyn, quietly = TRUE))) {
        periods$min_age[match(coral_div_dis$period, periods$name)]) / 2
   coral_div_dis <-
     coral_div_dis[rev(order(coral_div_dis$period_age)), , drop = FALSE]
+  coral_div_dis$period <- factor(coral_div_dis$period,
+                                 levels = unique(coral_div_dis$period))
 }
 
 if (suppressPackageStartupMessages(require(ape, quietly = TRUE))) {
@@ -47,6 +49,10 @@ if (suppressPackageStartupMessages(require(dispRity, quietly = TRUE))) {
   data(demo_data)
 }
 
+if (suppressPackageStartupMessages(require(palaeoverse, quietly = TRUE))) {
+  data(tetrapods)
+}
+
 suppressPackageStartupMessages(require(gsloid, quietly = TRUE))
 suppressPackageStartupMessages(require(ggtree, quietly = TRUE))
 suppressPackageStartupMessages(require(dispRity, quietly = TRUE))
@@ -62,7 +68,7 @@ str_standardise <- function(s, sep = "-") {
 expect_doppelganger_deeptime <- function(title, fig) {
   title_new <- paste(title, "new")
   title_old <- paste(title, "old")
-  if (packageVersion("ggplot2") > "3.3.6") {
+  if (packageVersion("ggplot2") >= "3.5.0") {
     fig_name <- str_standardise(title_old)
     file <- paste0(fig_name, ".svg")
     announce_snapshot_file(name = file)

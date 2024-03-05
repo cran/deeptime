@@ -1,7 +1,7 @@
 ## declare variables that are used within aes() to prevent
 ## R CMD check from complaining
 utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
-                         "name", "translate"))
+                         "name", "translate", "stages"))
 
 #' Transformed coordinate system with geological timescale
 #'
@@ -35,11 +35,12 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 #' useful for adding a time scale where categories and time intervals are not
 #' 1:1.
 #'
-#' `pos` may also be a list of sides (including duplicates) if multiple time
-#' scales should be added to the plot. In this case, `dat`, `fill`, `color`,
-#' `alpha`, `height`, `lab`, `lab_color`, `rot`, `abbrv`, `skip`, `size`, `lwd`,
-#' `neg`, `bord`, `center_end_labels`, and `dat_is_discrete` can also be lists.
-#' If these lists are not as long as `pos`, the elements will be recycled.
+#' `pos` may also be a `list` of sides (including duplicates) if multiple time
+#' scales should be added to the plot. In this case, `dat`, `fill`, `alpha`,
+#' `height`, `bord`, `lwd`, `color`, `lab`, `lab_color`, `rot`, `family`,
+#' `fontface`, `size`, `skip`, `abbrv`, `neg`, `center_end_labels`, and
+#' `dat_is_discrete` can also be `list`s. If these `list`s are not as long as
+#' `pos`, the elements will be recycled.
 #' If individual values (or vectors) are used for these parameters, they will be
 #' applied to all time scales (and recycled as necessary).
 #' @param pos Which side to add the scale to (left, right, top, or bottom).
@@ -49,11 +50,8 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 #'   B) a string indicating a timescale from macrostrat (see list here:
 #'   <https://macrostrat.org/api/defs/timescales?all>), or C) a custom
 #'   data.frame of time interval boundaries (see Details).
-#' @param xlim,ylim Limits for the x and y axes.
 #' @param xtrans,ytrans Transformers for the x and y axes. For more information
 #'   see [ggplot2::coord_trans()].
-#' @param clip Should drawing be clipped to the extent of the plot panel? For
-#'   more information see [ggplot2::coord_trans()].
 #' @param expand If `FALSE`, the default, limits are taken exactly from the data
 #'   or `xlim`/`ylim`. If `TRUE`, adds a small expansion factor to the limits to
 #'   ensure that data and axes don't overlap.
@@ -81,6 +79,11 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 #'   abbreviations.
 #' @param size Label size. Either a number as you would specify in
 #'   [ggplot2::geom_text()] or `"auto"` to use [ggfittext::geom_fit_text()].
+#' @param family The font family to use for the labels. There are only three
+#'   fonts that are guaranteed to work everywhere: “sans” (the default),
+#'   “serif”, or “mono”.
+#' @param fontface The font face to use for the labels. The standard options are
+#'   "plain" (default), "bold", "italic", and "bold.italic".
 #' @param lwd Line width.
 #' @param neg Set this to true if your x-axis is using negative values.
 #' @param bord A vector specifying on which sides of the scale to add borders
@@ -91,6 +94,7 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 #'   scale?
 #' @param fittext_args A list of named arguments to provide to
 #'   [ggfittext::geom_fit_text()]. Only used if `size` is set to `"auto"`.
+#' @inheritParams ggplot2::coord_trans
 #' @importFrom ggplot2 ggproto
 #' @import scales
 #' @export
@@ -117,17 +121,20 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
                       xtrans = identity_trans(), ytrans = identity_trans(),
                       clip = "on", expand = FALSE,
-                      fill = NULL, color = "black", alpha = 1,
-                      height = unit(2, "line"),
-                      lab = TRUE, lab_color = NULL, rot = 0, abbrv = TRUE,
-                      skip = c("Quaternary", "Holocene", "Late Pleistocene"),
-                      size = 5, lwd = .25, neg = FALSE,
+                      fill = NULL, alpha = 1, height = unit(2, "line"),
                       bord = c("left", "right", "top", "bottom"),
+                      lwd = .25, color = "black",
+                      lab = TRUE, lab_color = NULL, rot = 0,
+                      family = "sans", fontface = "plain", size = 5,
+                      skip = c("Quaternary", "Holocene", "Late Pleistocene"),
+                      abbrv = TRUE, neg = FALSE,
                       center_end_labels = FALSE, dat_is_discrete = FALSE,
                       fittext_args = list()) {
   # resolve transformers
   if (is.character(xtrans)) xtrans <- as.trans(xtrans)
   if (is.character(ytrans)) ytrans <- as.trans(ytrans)
+
+  # TODO: check arguments
 
   pos <- as.list(pos)
   n_scales <- length(pos)
@@ -145,6 +152,8 @@ coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
     lab_color = rep(make_list(lab_color), length.out = n_scales),
     rot = rep(make_list(rot), length.out = n_scales),
     abbrv = rep(make_list(abbrv), length.out = n_scales),
+    family = rep(make_list(family), length.out = n_scales),
+    fontface = rep(make_list(fontface), length.out = n_scales),
     skip = rep(make_list(skip), length.out = n_scales),
     size = rep(make_list(size), length.out = n_scales),
     lwd = rep(make_list(lwd), length.out = n_scales),
@@ -214,6 +223,8 @@ render_geo_scale <- function(self, panel_params, theme, position) {
     lab_color = self$lab_color[ind],
     rot = self$rot[ind],
     abbrv = self$abbrv[ind],
+    family = self$family[ind],
+    fontface = self$fontface[ind],
     skip = self$skip[ind],
     size = self$size[ind],
     lwd = self$lwd[ind],
@@ -273,10 +284,11 @@ render_geo_scale <- function(self, panel_params, theme, position) {
 #' @importFrom ggplot2 ggplot geom_rect geom_segment geom_text annotate aes
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual theme_void
 #' @importFrom ggplot2 scale_x_reverse coord_trans
+#' @importFrom ggplot2 last_plot set_last_plot
 #' @importFrom ggfittext geom_fit_text
 #' @importFrom rlang exec
 make_geo_scale <- function(self, dat, fill, color, alpha, pos,
-                           lab, lab_color, rot, abbrv, skip,
+                           lab, lab_color, rot, abbrv, family, fontface, skip,
                            size, lwd, neg, bord,
                            center_end_labels, dat_is_discrete,
                            panel_params, theme, fittext_args) {
@@ -324,6 +336,10 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
   }
   dat$label[dat$name %in% skip] <- ""
 
+  # do this so ggsave gets the whole plot
+  old_plot <- last_plot()
+  on.exit(set_last_plot(old_plot))
+
   # make ggplot of scale
   gg_scale <- ggplot() +
     geom_rect(
@@ -331,31 +347,17 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
       ymin = 0, ymax = 1, color = NA, alpha = alpha,
       show.legend = FALSE, inherit.aes = FALSE
     )
-  if (packageVersion("ggplot2") > "3.3.6") {
-    gg_scale <- gg_scale +
-      geom_segment(
-        data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
-        color = color, linewidth = lwd
-      ) +
-      geom_segment(
-        data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
-        color = color, linewidth = lwd
-      ) +
-      scale_fill_manual(values = setNames(dat$color, dat$color)) +
-      theme_void()
-  } else { # nocov start
-    gg_scale <- gg_scale +
-      geom_segment(
-        data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
-        color = color, size = lwd
-      ) +
-      geom_segment(
-        data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
-        color = color, size = lwd
-      ) +
-      scale_fill_manual(values = setNames(dat$color, dat$color)) +
-      theme_void()
-  } # nocov end
+  gg_scale <- gg_scale +
+    geom_segment(
+      data = dat, aes(x = min_age, xend = min_age), y = 0, yend = 1,
+      color = color, linewidth = lwd
+    ) +
+    geom_segment(
+      data = dat, aes(x = max_age, xend = max_age), y = 0, yend = 1,
+      color = color, linewidth = lwd
+    ) +
+    scale_fill_manual(values = setNames(dat$color, dat$color)) +
+    theme_void()
 
   rev_axis <- FALSE
   # if left or right, rotate accordingly using coord_trans_flip,
@@ -368,7 +370,8 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
       lims <- panel_params$x.range * c(1, -1)[rev_axis + 1]
     }
     gg_scale <- gg_scale +
-      coord_trans(x = self$trans$x, xlim = lims, ylim = c(0, 1), expand = FALSE)
+      coord_trans(x = self$trans$x, xlim = lims, ylim = c(0, 1), expand = FALSE,
+                  clip = self$clip)
   } else if (pos %in% c("left", "right", "l", "r")) {
     if (discrete) {
       lims <- panel_params$y.range
@@ -378,27 +381,25 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
     }
     gg_scale <- gg_scale +
       coord_trans_flip(x = self$trans$y, xlim = lims, ylim = c(0, 1),
-                       expand = FALSE)
+                       expand = FALSE, clip = self$clip)
   }
 
   # Add labels
   if (lab) {
     if (center_end_labels) {
       # center the labels for the time periods at the ends of the axis
-      max_end <- (dat$max_age > max(lims) & dat$min_age < max(lims)) |
-        (dat$max_age < max(lims) & dat$min_age > max(lims))
-      min_end <- (dat$max_age > min(lims) & dat$min_age < min(lims)) |
-        (dat$max_age < min(lims) & dat$min_age > min(lims))
-      if (any(max_end)) {
-        ends <- dat[max_end, c("min_age", "max_age")]
-        dat$mid_age[max_end] <-
-          (ends[ends < max(lims) & ends > min(lims)] + max(lims)) / 2
-      }
-      if (any(min_end)) {
-        ends <- dat[min_end, c("min_age", "max_age")]
-        dat$mid_age[min_end] <-
-          (ends[ends < max(lims) & ends > min(lims)] + min(lims)) / 2
-      }
+      # find which intervals overlap with the ends of the axis
+      max_end_pos <- (dat$max_age > max(lims) & dat$min_age < max(lims))
+      max_end_neg <- (dat$max_age < max(lims) & dat$min_age > max(lims))
+      min_end_pos <- (dat$max_age > min(lims) & dat$min_age < min(lims))
+      min_end_neg <- (dat$max_age < min(lims) & dat$min_age > min(lims))
+      # replace the max/min ages with the scale limits
+      dat$max_age[max_end_pos] <- max(lims)
+      dat$min_age[max_end_neg] <- max(lims)
+      dat$min_age[min_end_pos] <- min(lims)
+      dat$max_age[min_end_neg] <- min(lims)
+      # recalculate the mid ages
+      dat$mid_age <- (dat$max_age + dat$min_age) / 2
     }
     if (size == "auto") {
       gg_scale <- gg_scale +
@@ -408,7 +409,7 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
             ymin = 0, ymax = 1,
             xmin = min_age, xmax = max_age,
             color = lab_color
-          ), angle = rot,
+          ), angle = rot, family = family, fontface = fontface,
           show.legend = FALSE, inherit.aes = FALSE, !!!fittext_args
         )
     } else {
@@ -417,6 +418,7 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
           data = dat, aes(x = mid_age, label = label, color = lab_color),
           y = .5,
           vjust = "middle", hjust = "middle", size = size, angle = rot,
+          family = family, fontface = fontface,
           show.legend = FALSE, inherit.aes = FALSE
         )
     }
@@ -432,67 +434,36 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
     bord_lims[(if (neg) bord_lims > 0 else bord_lims < 0)] <- 0
   }
 
-  if (packageVersion("ggplot2") > "3.3.6") {
-    if ("left" %in% bord || "l" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
-          color = color,
-          linewidth = if (bord_lims[1] == lims[1]) lwd * 2 else lwd
-        )
-    }
-    if ("right" %in% bord || "r" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
-          color = color,
-          linewidth = if (bord_lims[2] == lims[2]) lwd * 2 else lwd
-        )
-    }
-    if ("top" %in% bord || "t" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
-          color = color, linewidth = lwd * 2
-        )
-    }
-    if ("bottom" %in% bord || "b" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
-          color = color, linewidth = lwd * 2
-        )
-    }
-  } else { # nocov start
-    if ("left" %in% bord || "l" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
-          color = color, size = if (bord_lims[1] == lims[1]) lwd * 2 else lwd
-        )
-    }
-    if ("right" %in% bord || "r" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
-          color = color, size = if (bord_lims[2] == lims[2]) lwd * 2 else lwd
-        )
-    }
-    if ("top" %in% bord || "t" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
-          color = color, size = lwd * 2
-        )
-    }
-    if ("bottom" %in% bord || "b" %in% bord) {
-      gg_scale <- gg_scale +
-        annotate("segment",
-          x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
-          color = color, size = lwd * 2
-        )
-    }
-  } # nocov end
+  if ("left" %in% bord || "l" %in% bord) {
+    gg_scale <- gg_scale +
+      annotate("segment",
+        x = bord_lims[1], xend = bord_lims[1], y = 0, yend = 1,
+        color = color,
+        linewidth = if (bord_lims[1] == lims[1]) lwd * 2 else lwd
+      )
+  }
+  if ("right" %in% bord || "r" %in% bord) {
+    gg_scale <- gg_scale +
+      annotate("segment",
+        x = bord_lims[2], xend = bord_lims[2], y = 0, yend = 1,
+        color = color,
+        linewidth = if (bord_lims[2] == lims[2]) lwd * 2 else lwd
+      )
+  }
+  if ("top" %in% bord || "t" %in% bord) {
+    gg_scale <- gg_scale +
+      annotate("segment",
+        x = bord_lims[1], xend = bord_lims[2], y = 1, yend = 1,
+        color = color, linewidth = lwd * 2
+      )
+  }
+  if ("bottom" %in% bord || "b" %in% bord) {
+    gg_scale <- gg_scale +
+      annotate("segment",
+        x = bord_lims[1], xend = bord_lims[2], y = 0, yend = 0,
+        color = color, linewidth = lwd * 2
+      )
+  }
 
   # reverse axis if necessary
   if (rev_axis) {

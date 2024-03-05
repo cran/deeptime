@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, fig.width = 7, fig.height = 5, fig.align = "center")
 
 ## ----message = FALSE----------------------------------------------------------
@@ -7,7 +7,6 @@ library(deeptime)
 # Load other packages
 library(ggplot2)
 library(dplyr)
-library(magrittr) # for piping
 # Load dispRity for example data
 library(dispRity)
 data(demo_data)
@@ -54,7 +53,7 @@ ggplot() +
   facet_wrap(~time, ncol = 1, strip.position = "right") +
   theme(panel.spacing = unit(1, "lines"), panel.background = element_blank())
 
-## ---- fig.height = 4----------------------------------------------------------
+## ----fig.height = 4-----------------------------------------------------------
 crinoids$time <- factor(crinoids$time)
 disparity_through_time(time ~ V2 * V1,
   data = crinoids, groups = time, aspect = c(1.5, .6),

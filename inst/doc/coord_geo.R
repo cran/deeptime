@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, fig.width = 7, fig.height = 5, fig.align = "center")
 
 ## ----message = FALSE----------------------------------------------------------
@@ -7,7 +7,6 @@ library(deeptime)
 # Load other packages
 library(ggplot2)
 library(dplyr)
-library(magrittr) # for piping
 # Load divDyn for coral data
 library(divDyn)
 data(corals)
@@ -148,12 +147,4 @@ ggplot(coral_div_dis) +
   ) +
   theme_classic() +
   theme(axis.ticks.length.x = unit(0, "lines"))
-
-## -----------------------------------------------------------------------------
-ggplot(coral_div_dis, aes(x = n, y = diet, fill = period)) +
-  geom_col() +
-  scale_fill_geo(periods) +
-  xlab("Coral Genera") +
-  ylab("Diet") +
-  theme_classic()
 
