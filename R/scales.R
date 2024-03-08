@@ -5,7 +5,6 @@
 #' @inheritParams ggplot2::scale_discrete_manual
 #' @inheritDotParams ggplot2::discrete_scale -expand -position -palette -breaks
 #' @importFrom ggplot2 discrete_scale
-#' @importFrom cli cli_abort
 #' @rdname scale_geo
 #' @param dat Either A) a string indicating a built-in dataframe with interval
 #'   data from the ICS ("periods", "epochs", "stages", "eons", or "eras"),
@@ -55,18 +54,20 @@ scale_fill_geo <- function(dat, ...) {
 scale_discrete_geo <- function(dat, aesthetics, ...) {
   if (is(dat, "data.frame")) {
     # just use the supplied data
-  } else {
+  } else if (is.character(dat)) {
     dat <- get_scale_data(dat)
+  } else {
+    cli::cli_abort("`dat` must be either a dataframe or a string.")
   }
   if (!all(c("name", "color") %in% colnames(dat))) {
-    stop("Either `name` or `color` is not a named column in `dat`")
+    cli::cli_abort("Either `name` or `color` is not a named column in `dat`")
   }
   values <- setNames(dat$color, dat$name)
 
   pal <- function(n) {
     if (n > length(values)) {
-      cli_abort("Insufficient values in manual scale. {n} needed but only
-                {length(values)} provided.")
+      cli::cli_abort("Insufficient values in manual scale. {n} needed but only
+                     {length(values)} provided.")
     }
     values
   }

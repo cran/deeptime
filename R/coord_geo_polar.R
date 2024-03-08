@@ -35,10 +35,12 @@
 #' scaled such that they sum to 1. However, the `prop` values may sum to less
 #' than 1 if the user would like blank space in the background.
 #'
-#' The `deeptime.axis.line.r`, `deeptime.axis.text.r`, `deeptime.axis.ticks.r`,
-#' and `deeptime.axis.ticks.length.r` ggplot2 [theme elements][ggplot2::theme]
-#' can be modified just like their x and y counterparts to change the appearance
-#' of the radius axis. The default settings work well for a horizontal axis
+#' `coord_geo_polar` manually generates the `r` axis, meaning it does not
+#' support changing the guide features of ggplot v. 2.5.0 or later. However, the
+#' `deeptime.axis.line.r`, `deeptime.axis.text.r`, `deeptime.axis.ticks.r`, and
+#' `deeptime.axis.ticks.length.r` ggplot2 [theme elements][ggplot2::theme] can
+#' be modified just like their x and y counterparts to change the appearance of
+#' the radius axis. The default settings work well for a horizontal axis
 #' pointing towards the right, but these theme settings will need to be modified
 #' for other orientations. The default value for `deeptime.axis.line.r` is
 #' `element_line()`. The default value for `deeptime.axis.text.r` is
@@ -132,10 +134,15 @@ coord_geo_polar <- function(dat = "periods", theta = "y",
   dat <- make_list(dat)
   n_scales <- length(dat)
 
+  # check global (non-list) arguments
   theta <- arg_match0(theta, c("x", "y"))
   r <- if (theta == "x") "y" else "x"
-
-  # TODO: check arguments
+  check_number_decimal(start, allow_infinite = FALSE)
+  if (!direction %in% c(-1, 1)) {
+    cli::cli_abort(paste0("`direction` must be either -1 or 1, not ",
+                          direction, "."))
+  }
+  clip <- arg_match0(clip, c("off", "on"))
 
   ggproto(NULL, CoordGeoPolar,
     theta = theta, r = r,
@@ -182,10 +189,14 @@ ggname <- function(prefix, grob) {
 }
 
 clean_dat <- function(dat, fill, neg, r_lims) {
+  # check arguments
+  check_bool(neg)
   if (is(dat, "data.frame")) {
     # just use the supplied data
-  } else {
+  } else if (is.character(dat)) {
     dat <- get_scale_data(dat)
+  } else {
+    cli::cli_abort("`dat` must be either a dataframe or a string.")
   }
 
   if (neg) {
@@ -262,6 +273,16 @@ CoordGeoPolar <- ggproto("CoordGeoPolar", CoordPolar,
     # assemble the timescale background as a ggplot
     geo_scale <- ggplot()
     for (ind in seq_along(dat_list)) {
+      # check timescale-specific arguments
+      check_number_decimal(self$alpha[[ind]], min = 0, max = 1, arg = "alpha")
+      check_number_decimal(self$lwd[[ind]], arg = "lwd")
+      check_bool(self$lab[[ind]], arg = "lab")
+      check_bool(self$abbrv[[ind]], arg = "abbrv")
+      check_character(self$skip[[ind]], arg = "skip", allow_null = TRUE)
+      check_number_decimal(self$prop[[ind]], min = 0, max = 1, arg = "prop")
+      if (!is.list(self$textpath_args[[ind]])) {
+        cli::cli_abort("`textpath_args` must be a `list` of arguments.")
+      }
       dat_ind <- dat_list[[ind]]
       geo_scale <- geo_scale +
         geom_rect(
@@ -349,19 +370,26 @@ CoordGeoPolar <- ggproto("CoordGeoPolar", CoordPolar,
     # should there be an axis label?
 
     colors <- do.call(c, lapply(dat_list, function(dat) dat$color))
+
     geo_scale <- geo_scale +
       coord_polar(start = self$start, direction = self$direction,
                   clip = self$clip) +
       scale_fill_manual(values = setNames(colors, colors)) +
       scale_x_continuous(limits = c(0, 1)) +
+      scale_y_continuous(limits = r_lims) +
       theme_void()
 
     # do the normal coord_polar background stuff
     parent <- ggproto_parent(CoordPolar, self)
     bg <- parent$render_bg(panel_params, theme)
 
+    # if the axis ends at zero, the tick mark is clipped, but that warning would
+    # probably be confusing to users
+    suppressWarnings({
+      geo_scale_grob <- ggplotGrob(geo_scale)
+    })
     # insert the geo_scale into the gTree, then reorder
-    bg <- addGrob(bg, ggname("geo_scale", ggplotGrob(geo_scale)))
+    bg <- addGrob(bg, ggname("geo_scale", geo_scale_grob))
     reorderGrob(bg, order = c(1, length(grid.ls(bg, print = FALSE)$name) - 1))
   }
 )

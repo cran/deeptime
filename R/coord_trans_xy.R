@@ -21,7 +21,6 @@
 #' @param trans Transformer for x and y axes.
 #' @importFrom ggplot2 ggproto
 #' @importFrom ggforce linear_trans
-#' @importFrom cli cli_abort
 #' @inheritParams ggplot2::coord_cartesian
 #' @export
 #' @examples
@@ -50,6 +49,16 @@
 coord_trans_xy <- function(trans = NULL, xlim = NULL, ylim = NULL,
                            expand = FALSE, default = FALSE, clip = "on") {
   if (is.null(trans)) trans <- linear_trans(translate(0, 0))
+  if (!is(trans, "transform")) {
+    cli::cli_abort("`trans` must be a linear transformation, such as that
+                   produced by `ggforce::linear_trans()`")
+  }
+
+  # check arguments
+  clip <- arg_match0(clip, c("off", "on"))
+  check_bool(expand)
+  check_bool(default)
+
   ggproto(NULL, CoordTransXY,
     trans = trans,
     limits = list(x = xlim, y = ylim),
@@ -269,7 +278,9 @@ if (packageVersion("ggplot2") >= "3.5.0") {
               # different breaks and labels in a different data space
               aesthetics = scale$aesthetics,
               name = scale$sec_name(),
-              make_title = function(self, title) self$scale$make_sec_title(title),
+              make_title = function(self, title) {
+                self$scale$make_sec_title(title)
+              },
               limits = limits,
               continuous_range = continuous_range,
               dimension = function(self) self$break_info$range,
@@ -281,7 +292,8 @@ if (packageVersion("ggplot2") >= "3.5.0") {
               get_labels = function(self, breaks = self$get_breaks()) {
                 self$break_info$labels
               },
-              rescale = function(x) rescale(x, from = break_info$range, to = c(0, 1))
+              rescale = function(x) rescale(x, from = break_info$range,
+                                            to = c(0, 1))
       )
     }
   }

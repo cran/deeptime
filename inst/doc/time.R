@@ -68,7 +68,8 @@ ggplot(data = occdf) +
 ## -----------------------------------------------------------------------------
 oldest_certain <- occdf %>%
   filter(accepted_name == "Diictodon", certainty == 1) %>%
-  pull(age) %>% max()
+  pull(age) %>%
+  max()
 
 n_uncertain <- sum(occdf$accepted_name == "Diictodon" & occdf$certainty == 0)
 

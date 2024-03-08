@@ -6,7 +6,12 @@
 #' the background of the plot. `coord_geo_radial` is similar to
 #' [coord_geo_polar()] but has more options related to the polar coordinate
 #' plotting that are inherited from [ggplot2::coord_radial()] (e.g., `end`,
-#' `r_axis_inside`, `inner.radius`).
+#' `r_axis_inside`, `inner.radius`). Furthermore, unlike `coord_geo_polar`,
+#' `coord_geo_radial` uses the ggplot2 internals to draw the `r` and `theta`
+#' axes, gridlines, etc. This means that users can tweak the
+#' [guide][ggplot2::guides] and [theme][ggplot2::theme] settings for these
+#' features (see examples). Note that `coord_geo_radial` requires ggplot2 v.
+#' 3.5.0 or later.
 #'
 #' If a custom data.frame is provided (with `dat`), it should consist of at
 #' least 2 columns of data. See `data(periods)` for an example.
@@ -89,17 +94,28 @@ coord_geo_radial <- function(dat = "periods",
                                       "Late Pleistocene"),
                              neg = TRUE, prop = 1, textpath_args = list(),
                              clip = "off", rotate_angle = FALSE) {
-  if (packageVersion("ggplot2") < "3.5.0") {
-    stop("coord_geo_radial() requires ggplot2 version 3.5.0 or later.")
-  }
+  if (packageVersion("ggplot2") < "3.5.0") {# nocov start
+    cli::cli_abort("coord_geo_radial() requires ggplot2 version 3.5.0 or
+                   later.")
+  }# nocov end
 
   dat <- make_list(dat)
   n_scales <- length(dat)
 
+  # check global (non-list) arguments
   theta <- arg_match0(theta, c("x", "y"))
   r <- if (theta == "x") "y" else "x"
-
-  # TODO: check arguments
+  check_number_decimal(start, allow_infinite = FALSE)
+  check_number_decimal(end, allow_infinite = FALSE, allow_null = TRUE)
+  check_bool(expand)
+  if (!direction %in% c(-1, 1)) {
+    cli::cli_abort(paste0("`direction` must be either -1 or 1, not ",
+                          direction, "."))
+  }
+  check_bool(r_axis_inside, allow_null = TRUE)
+  check_number_decimal(inner.radius, min = 0, max = 1, allow_infinite = FALSE)
+  clip <- arg_match0(clip, c("off", "on"))
+  check_bool(rotate_angle)
 
   end <- end %||% (start + 2 * pi)
   if (start > end) {
@@ -182,6 +198,16 @@ CoordGeoRadial <- ggproto("CoordGeoRadial",
     # assemble the timescale background as a ggplot
     geo_scale <- ggplot()
     for (ind in seq_along(dat_list)) {
+      # check timescale-specific arguments
+      check_number_decimal(self$alpha[[ind]], min = 0, max = 1, arg = "alpha")
+      check_number_decimal(self$lwd[[ind]], arg = "lwd")
+      check_bool(self$lab[[ind]], arg = "lab")
+      check_bool(self$abbrv[[ind]], arg = "abbrv")
+      check_character(self$skip[[ind]], arg = "skip", allow_null = TRUE)
+      check_number_decimal(self$prop[[ind]], min = 0, max = 1, arg = "prop")
+      if (!is.list(self$textpath_args[[ind]])) {
+        cli::cli_abort("`textpath_args` must be a `list` of arguments.")
+      }
       dat_ind <- dat_list[[ind]]
       geo_scale <- geo_scale +
         geom_rect(
@@ -229,14 +255,16 @@ CoordGeoRadial <- ggproto("CoordGeoRadial",
                    clip = self$clip, inner.radius = self$inner.radius) +
       scale_fill_manual(values = setNames(colors, colors)) +
       scale_x_continuous(limits = c(0, 1)) +
+      scale_y_continuous(limits = r_lims) +
       theme_void()
 
     # do the normal coord_radial background stuff
     parent <- ggproto_parent(CoordRadial, self)
     bg <- parent$render_bg(panel_params, theme)
 
+    geo_scale_grob <- ggplotGrob(geo_scale)
     # insert the geo_scale into the gTree, then reorder
-    bg <- addGrob(bg, ggname("geo_scale", ggplotGrob(geo_scale)))
+    bg <- addGrob(bg, ggname("geo_scale", geo_scale_grob))
     reorderGrob(bg, order = c(1, length(grid.ls(bg, print = FALSE)$name) - 1))
   }
 )

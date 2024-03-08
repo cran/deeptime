@@ -96,7 +96,6 @@ utils::globalVariables(c("min_age", "max_age", "mid_age", "label",
 #'   [ggfittext::geom_fit_text()]. Only used if `size` is set to `"auto"`.
 #' @inheritParams ggplot2::coord_trans
 #' @importFrom ggplot2 ggproto
-#' @import scales
 #' @export
 #' @examples
 #' library(ggplot2)
@@ -132,10 +131,22 @@ coord_geo <- function(pos = "bottom", dat = "periods", xlim = NULL, ylim = NULL,
                       fittext_args = list()) {
   # resolve transformers
   if (is.character(xtrans)) xtrans <- as.trans(xtrans)
+  if (!is.trans(xtrans)) {
+    cli::cli_abort("`xtrans` must be a transformer function or a string.")
+  }
   if (is.character(ytrans)) ytrans <- as.trans(ytrans)
+  if (!is.trans(ytrans)) {
+    cli::cli_abort("`ytrans` must be a transformer function or a string.")
+  }
 
-  # TODO: check arguments
+  # check global (non-list) arguments
+  clip <- arg_match0(clip, c("off", "on"))
+  check_bool(expand)
 
+  if (any(!pos %in% c("bottom", "top", "left", "right", "b", "t", "l", "r"))) {
+    cli::cli_abort('`pos` must be a one of "left", "right", "top", or
+                   "bottom" (first letter may also be used).')
+  }
   pos <- as.list(pos)
   n_scales <- length(pos)
 
@@ -208,6 +219,7 @@ CoordGeo <- ggproto("CoordGeo", CoordTrans,
 
 #' @importFrom ggplot2 ggplotGrob
 #' @importFrom grid unit unit.c viewport grobWidth grobHeight gList gTree
+#' @importFrom grid is.unit
 #' @importFrom gtable gtable_col gtable_row gtable_height gtable_width
 render_geo_scale <- function(self, panel_params, theme, position) {
   one <- unit(1, "npc")
@@ -218,7 +230,6 @@ render_geo_scale <- function(self, panel_params, theme, position) {
     fill = self$fill[ind],
     color = self$color[ind],
     alpha = self$alpha[ind],
-    pos = self$pos[ind],
     lab = self$lab[ind],
     lab_color = self$lab_color[ind],
     rot = self$rot[ind],
@@ -233,12 +244,16 @@ render_geo_scale <- function(self, panel_params, theme, position) {
     center_end_labels = self$center_end_labels[ind],
     dat_is_discrete = self$dat_is_discrete[ind],
     MoreArgs = list(
-      self = self, panel_params = panel_params,
+      self = self, pos = position, panel_params = panel_params,
       theme = theme, fittext_args = self$fittext_args
     ),
     SIMPLIFY = FALSE
   )
   geo_grobs <- lapply(geo_scales, ggplotGrob)
+  if (!all(sapply(self$height[ind], is.unit))) {
+    cli::cli_abort("`height` must be a unit object such as that produced by
+                   `grid::unit()`.")
+  }
 
   if (position == "bottom") {
     axis <- CoordTrans$render_axis_h(panel_params, theme)$bottom
@@ -292,17 +307,38 @@ make_geo_scale <- function(self, dat, fill, color, alpha, pos,
                            size, lwd, neg, bord,
                            center_end_labels, dat_is_discrete,
                            panel_params, theme, fittext_args) {
+  # check timescale-specific arguments
   if (is(dat, "data.frame")) {
     # just use the supplied data
-  } else {
+  } else if (is.character(dat)) {
     dat <- get_scale_data(dat)
+  } else {
+    cli::cli_abort("`dat` must be either a dataframe or a string.")
+  }
+  check_number_decimal(alpha, min = 0, max = 1)
+  check_bool(lab)
+  check_number_decimal(rot)
+  check_bool(abbrv)
+  check_string(family)
+  check_string(fontface)
+  check_character(skip, allow_null = TRUE)
+  if (!is.numeric(size) && size != "auto") {
+    cli::cli_abort('`size` must be either a number or "auto".')
+  }
+  check_number_decimal(lwd, min = 0)
+  check_bool(neg)
+  check_character(bord, allow_null = TRUE)
+  check_bool(center_end_labels)
+  check_bool(dat_is_discrete)
+  if (!is.list(fittext_args)) {
+    cli::cli_abort("`fittext_args` must be a `list` of arguments.")
   }
 
   # if the axis is discrete, adjust the data accordingly
-  if (pos %in% c("bottom", "top", "b", "t")) {
+  if (pos %in% c("bottom", "top")) {
     discrete <- panel_params$scale_x$is_discrete()
     limits <- panel_params$scale_x$limits
-  } else if (pos %in% c("left", "right", "l", "r")) {
+  } else {
     discrete <- panel_params$scale_y$is_discrete()
     limits <- panel_params$scale_y$limits
   }

@@ -1,7 +1,7 @@
 ## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(collapse = TRUE, fig.width = 7, fig.height = 5, fig.align = "center")
 
-## ----message = FALSE----------------------------------------------------------
+## ----message = FALSE, warning = FALSE-----------------------------------------
 # Load deeptime
 library(deeptime)
 # Load other packages
@@ -30,29 +30,29 @@ ggplot(coral_div) +
   coord_geo(xlim = c(250, 0), ylim = c(0, 1700)) +
   theme_classic()
 
-## -----------------------------------------------------------------------------
-ggplot(lisiecki2005) +
-  geom_line(aes(x = d18O, y = Time / 1000), orientation = "y") +
-  scale_y_reverse("Time (Ma)") +
-  scale_x_reverse() +
-  coord_geo(
-    dat = "Geomagnetic Polarity Chron", xlim = c(6, 2), ylim = c(6, 0),
-    pos = "left", rot = 90
-  ) +
-  theme_classic()
+## ----eval = FALSE-------------------------------------------------------------
+#  ggplot(lisiecki2005) +
+#    geom_line(aes(x = d18O, y = Time / 1000), orientation = "y") +
+#    scale_y_reverse("Time (Ma)") +
+#    scale_x_reverse() +
+#    coord_geo(
+#      dat = "Geomagnetic Polarity Chron", xlim = c(6, 2), ylim = c(6, 0),
+#      pos = "left", rot = 90
+#    ) +
+#    theme_classic()
 
-## -----------------------------------------------------------------------------
-# uses the oxygen isotope data from above
-ggplot(lisiecki2005) +
-  geom_line(aes(x = d18O, y = Time / 1000), orientation = "y") +
-  scale_y_reverse("Time (Ma)") +
-  scale_x_reverse() +
-  coord_geo(
-    dat = list("Geomagnetic Polarity Chron", "Planktic foraminiferal Primary Biozones"),
-    xlim = c(6, 2), ylim = c(5.5, 0), pos = list("l", "r"),
-    rot = 90, skip = "PL4", size = list(5, 4)
-  ) +
-  theme_classic()
+## ----eval = FALSE-------------------------------------------------------------
+#  # uses the oxygen isotope data from above
+#  ggplot(lisiecki2005) +
+#    geom_line(aes(x = d18O, y = Time / 1000), orientation = "y") +
+#    scale_y_reverse("Time (Ma)") +
+#    scale_x_reverse() +
+#    coord_geo(
+#      dat = list("Geomagnetic Polarity Chron", "Planktic foraminiferal Primary Biozones"),
+#      xlim = c(6, 2), ylim = c(5.5, 0), pos = list("l", "r"),
+#      rot = 90, skip = "PL4", size = list(5, 4)
+#    ) +
+#    theme_classic()
 
 ## -----------------------------------------------------------------------------
 # uses the coral diversity data from above

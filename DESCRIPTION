@@ -1,6 +1,6 @@
 Package: deeptime
 Title: Plotting Tools for Anyone Working in Deep Time
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: person("William", "Gearty", email = "willgearty@gmail.com", role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0003-0076-3262"))
 Maintainer: William Gearty <willgearty@gmail.com>
@@ -20,8 +20,8 @@ RoxygenNote: 7.3.1
 LazyData: true
 biocViews:
 Imports: ggplot2 (>= 3.4.0), ggnewscale, utils, ggforce, grid,
-        gridExtra, gtable, methods, stats, lattice, rlang, scales,
-        ggfittext, curl, cli, phytools, lifecycle, geomtextpath
+        gridExtra, gtable, methods, stats, lattice, rlang (>= 1.1.0),
+        scales, ggfittext, curl, cli, phytools, lifecycle, geomtextpath
 Suggests: dplyr, divDyn, gsloid, ape, palaeoverse, paleotree, dispRity,
         ggtree (>= 3.6.1), testthat (>= 3.0.0), vdiffr (>= 1.0.0),
         knitr, rmarkdown, withr
@@ -29,7 +29,7 @@ VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/Needs/revdeps: revdepcheck
 NeedsCompilation: no
-Packaged: 2024-03-05 19:38:41 UTC; willg
+Packaged: 2024-03-08 16:00:13 UTC; willg
 Author: William Gearty [aut, cre] (<https://orcid.org/0000-0003-0076-3262>)
 Repository: CRAN
-Date/Publication: 2024-03-05 20:10:02 UTC
+Date/Publication: 2024-03-08 17:10:10 UTC
