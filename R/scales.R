@@ -50,7 +50,7 @@ scale_fill_geo <- function(dat, ...) {
 
 #' @export
 #' @rdname scale_geo
-#' @importFrom utils packageVersion
+#' @importFrom stats setNames
 scale_discrete_geo <- function(dat, aesthetics, ...) {
   if (is(dat, "data.frame")) {
     # just use the supplied data
@@ -72,9 +72,5 @@ scale_discrete_geo <- function(dat, aesthetics, ...) {
     values
   }
 
-  if (packageVersion("ggplot2") < "3.5.0") {
-    discrete_scale(aesthetics, "geo", pal, breaks = names(values), ...)
-  } else {
-    discrete_scale(aesthetics, palette = pal, breaks = names(values), ...)
-  }
+  discrete_scale(aesthetics, palette = pal, breaks = names(values), ...)
 }

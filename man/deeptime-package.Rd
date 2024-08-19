@@ -8,13 +8,13 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Extends the functionality of other plotting packages like 'ggplot2' and 'lattice' to help facilitate the plotting of data over long time intervals, including, but not limited to, geological, evolutionary, and ecological data. The primary goal of 'deeptime' is to enable users to add highly customizable timescales to their visualizations. Other functions are also included to assist with other areas of deep time visualization.
+Extends the functionality of other plotting packages (notably 'ggplot2') to help facilitate the plotting of data over long time intervals, including, but not limited to, geological, evolutionary, and ecological data. The primary goal of 'deeptime' is to enable users to add highly customizable timescales to their visualizations. Other functions are also included to assist with other areas of deep time visualization.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/willgearty/deeptime}
   \item \url{https://williamgearty.com/deeptime/}
+  \item \url{https://github.com/willgearty/deeptime}
   \item Report bugs at \url{https://github.com/willgearty/deeptime/issues}
 }
 

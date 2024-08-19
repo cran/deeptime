@@ -46,6 +46,10 @@ test_that("coord_geo works", {
       geom_line(aes(x = stage_age, y = n)) +
       coord_geo(pos = "middle", xlim = c(250, 0), ylim = c(10, 1700))
   })
+  gg <- ggplot(coral_div) +
+    geom_line(aes(x = stage_age, y = n)) +
+    coord_geo(xlim = c(250, 0), ylim = c(10, 1700), abbrv = "no")
+  expect_error(plot(gg))
 })
 
 test_that("stacking scales works", {
@@ -55,8 +59,8 @@ test_that("stacking scales works", {
     scale_x_reverse("Age (Ma)") +
     ylab("Coral Genera") +
     coord_geo(
-      dat = list("periods", "eras"), xlim = c(250, 0), ylim = c(0, 1700),
-      pos = list("b", "b"), abbrv = list(TRUE, FALSE)
+      dat = list("epochs", "periods", "eras"), xlim = c(250, 0), ylim = c(0, 1700),
+      pos = list("b", "b", "b"), abbrv = list("auto", TRUE, FALSE)
     ) +
     theme_classic()
   expect_doppelganger_deeptime("stacked scales", gg)
@@ -156,13 +160,13 @@ test_that("geom_fit_text() works", {
 test_that("ggtree scale works", {
   skip_if_not_installed("ggtree")
   skip_if_not_installed("phytools")
-  gg <- ggtree(mammal.tree) +
+  gg <- revts(ggtree(mammal.tree)) +
     coord_geo(xlim = c(-75, 0), ylim = c(-2, Ntip(mammal.tree)),
               neg = TRUE, abbrv = FALSE) +
     scale_x_continuous(breaks = seq(-80, 0, 20),
                        labels = abs(seq(-80, 0, 20))) +
     theme_tree2()
-  expect_doppelganger_deeptime("scale on ggtree", revts(gg))
+  expect_doppelganger_deeptime("scale on ggtree", gg)
 })
 
 test_that("ggtree scale works with only fossil taxa", {

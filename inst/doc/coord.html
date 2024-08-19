@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -353,8 +353,7 @@ to load some packages.</p>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(deeptime)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Load ggplot for making plots</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># It has some example data too</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="do">## Warning: package &#39;ggplot2&#39; was built under R version 4.3.3</span></span></code></pre></div>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
 <div id="coord_trans-meets-coord_flip" class="section level2">
 <h2>coord_trans meets coord_flip</h2>
 <p>One limitation of the traditional <code>coord_trans()</code> function
@@ -392,28 +391,27 @@ real data, see the <a href="traits.html">plotting traits</a> article for
 a potential real-world application using species trait data.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># make transformer</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">library</span>(ggforce)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="do">## Warning: package &#39;ggforce&#39; was built under R version 4.3.3</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">linear_trans</span>(<span class="fu">shear</span>(<span class="dv">50</span>, <span class="dv">0</span>))</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># set up data to be plotted</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>square <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">disp =</span> <span class="fu">c</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    <span class="fu">min</span>(mtcars<span class="sc">$</span>disp), <span class="fu">min</span>(mtcars<span class="sc">$</span>disp),</span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    <span class="fu">max</span>(mtcars<span class="sc">$</span>disp), <span class="fu">max</span>(mtcars<span class="sc">$</span>disp)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  ),</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="at">wt =</span> <span class="fu">c</span>(</span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="fu">min</span>(mtcars<span class="sc">$</span>wt), <span class="fu">max</span>(mtcars<span class="sc">$</span>wt),</span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    <span class="fu">max</span>(mtcars<span class="sc">$</span>wt), <span class="fu">min</span>(mtcars<span class="sc">$</span>wt)</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  )</span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>)</span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co"># plot data normally</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> square, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>() <span class="sc">+</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>trans <span class="ot">&lt;-</span> <span class="fu">linear_trans</span>(<span class="fu">shear</span>(<span class="dv">50</span>, <span class="dv">0</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># set up data to be plotted</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>square <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">disp =</span> <span class="fu">c</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    <span class="fu">min</span>(mtcars<span class="sc">$</span>disp), <span class="fu">min</span>(mtcars<span class="sc">$</span>disp),</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    <span class="fu">max</span>(mtcars<span class="sc">$</span>disp), <span class="fu">max</span>(mtcars<span class="sc">$</span>disp)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  ),</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">wt =</span> <span class="fu">c</span>(</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>    <span class="fu">min</span>(mtcars<span class="sc">$</span>wt), <span class="fu">max</span>(mtcars<span class="sc">$</span>wt),</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="fu">max</span>(mtcars<span class="sc">$</span>wt), <span class="fu">min</span>(mtcars<span class="sc">$</span>wt)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  )</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co"># plot data normally</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> square, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>() <span class="sc">+</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div>
 <p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># plot data with transformation</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(disp, wt)) <span class="sc">+</span></span>

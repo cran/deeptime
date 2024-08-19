@@ -60,8 +60,7 @@
 #' @section Life cycle: This function is soft-deprecated in favor of
 #'   [coord_geo_radial()] as of **deeptime** version 1.1.0. There is currently
 #'   no plan to remove this function, but users are strongly encouraged to
-#'   migrate to the new function for enhanced polar functionality. Note that
-#'   [coord_geo_radial()] requires ggplot2 version 3.5.0 or later.
+#'   migrate to the new function for enhanced polar functionality.
 #'
 #' @param dat Either A) a string indicating a built-in dataframe with interval
 #'   data from the ICS ("periods", "epochs", "stages", "eons", or "eras"), B) a
@@ -78,7 +77,7 @@
 #'   lines.
 #' @param lty Line type for lines between intervals.
 #' @param color The color of the lines between intervals.
-#' @param lab Whether to include labels.
+#' @param lab Whether to include labels. Requires the `geomtextpath` package.
 #' @param abbrv If including labels, whether to use abbreviations instead of
 #'   full interval names.
 #' @param skip A vector of interval names indicating which intervals should not
@@ -242,7 +241,6 @@ clean_dat <- function(dat, fill, neg, r_lims) {
 #' @importFrom ggplot2 last_plot set_last_plot
 #' @importFrom grid addGrob reorderGrob grid.ls
 #' @importFrom rlang %||% exec
-#' @importFrom geomtextpath geom_textpath
 CoordGeoPolar <- ggproto("CoordGeoPolar", CoordPolar,
   render_bg = function(self, panel_params, theme) {
     panel_params <- rename_data(self, panel_params)
@@ -311,12 +309,15 @@ CoordGeoPolar <- ggproto("CoordGeoPolar", CoordPolar,
       }
       # add labels if requested
       if (self$lab[[ind]]) { # nocov start
+        rlang::check_installed("geomtextpath",
+                               reason = paste0("to add labels with ",
+                                               "`coord_geo_polar()`"))
         if (self$abbrv[[ind]] && "abbr" %in% colnames(dat_ind)) {
           dat_ind$name <- dat_ind$abbr
         }
         dat_temp <- dat_ind[rep(seq_len(nrow(dat_ind)), each = 2), ]
         geo_scale <- geo_scale +
-          exec(geom_textpath, data = dat_temp,
+          exec(geomtextpath::geom_textpath, data = dat_temp,
                aes(y = (min_age + max_age) / 2, label = name),
                x = rep(c(xmins[ind], xmins[ind + 1]), nrow(dat_ind)),
                text_only = TRUE, !!!self$textpath_args[[ind]])
