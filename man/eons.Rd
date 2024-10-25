@@ -13,6 +13,9 @@ A data frame with 3 rows and 5 variables:
 \item{abbr}{eon name abbreviations}
 \item{color}{the colors for each eon, according to the Commission for the
 Geological Map of the World}
+\item{lab_color}{the label colors for each eon, either white or black,
+whichever has better contrast with the background color, based on
+\href{https://www.itu.int/rec/R-REC-BT.601-7-201103-I/en}{recommendations by the International Telecommunication Union}}
 }
 }
 \source{
@@ -27,11 +30,11 @@ eons of the Geologic Time Scale. Based on The ICS International
 Chronostratigraphic Chart (v2023/06), by Cohen, Finney, Gibbard, and Fan.
 }
 \seealso{
-Other timescales: 
+Other built-in timescales: 
 \code{\link{epochs}},
 \code{\link{eras}},
 \code{\link{periods}},
 \code{\link{stages}}
 }
-\concept{timescales}
+\concept{built-in timescales}
 \keyword{datasets}
